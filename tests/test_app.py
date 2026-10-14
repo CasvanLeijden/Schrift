@@ -20,3 +20,8 @@ def test_login_page_renders(client):
 def test_manifest_and_service_worker(client):
     assert client.get("/manifest.webmanifest").json()["name"] == "Schrift"
     assert client.get("/sw.js").status_code == 200
+
+
+def test_head_requests(client):
+    assert client.head("/login").status_code == 200
+    assert client.head("/healthz").content == b""

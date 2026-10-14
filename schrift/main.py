@@ -1,4 +1,5 @@
 import logging
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 from urllib.parse import urlparse
@@ -155,7 +156,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/healthz")
     def healthz() -> dict[str, str]:
-        return {"status": "ok", "version": __version__}
+        return {
+            "status": "ok",
+            "version": __version__,
+            "build": os.environ.get("SCHRIFT_BUILD", "dev"),
+        }
 
     @app.api_route("/", methods=["PROPFIND", "OPTIONS"], include_in_schema=False)
     async def root_dav(request: Request):
@@ -168,7 +173,36 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(oauth.router)
     # MCP endpoint and OAuth endpoints (/mcp, /authorize, /token, /register, metadata).
     app.mount("/", mcp_app)
-    return app
+    return HeadAsGet(app)
+
+
+class HeadAsGet:
+    """Answer HEAD like GET without a body; FastAPI only routes the methods it is given.
+
+    CalDAV paths are left alone, they handle HEAD themselves.
+    """
+
+    def __init__(self, app: FastAPI):
+        self.app = app
+        self.state = app.state
+
+    def __getattr__(self, name):
+        return getattr(self.app, name)
+
+    async def __call__(self, scope, receive, send):
+        if (
+            scope["type"] != "http"
+            or scope["method"] != "HEAD"
+            or scope["path"].startswith(("/caldav", "/.well-known/caldav"))
+        ):
+            return await self.app(scope, receive, send)
+
+        async def send_without_body(message):
+            if message["type"] == "http.response.body":
+                message = {**message, "body": b""}
+            await send(message)
+
+        await self.app({**scope, "method": "GET"}, receive, send_without_body)
 
 
 def __getattr__(name: str):

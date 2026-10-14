@@ -36,6 +36,11 @@ def main(argv: list[str] | None = None) -> int:
     create.add_argument("username")
     create.add_argument("--admin", action="store_true")
     create.add_argument("--password", help="read from stdin or prompt when omitted")
+    create.add_argument(
+        "--temporary",
+        action="store_true",
+        help="generate a temporary password that must be changed at first login",
+    )
     reset = user.add_parser("reset", help="set a new password and turn off 2FA")
     reset.add_argument("username")
     reset.add_argument("--password")
@@ -63,7 +68,7 @@ def main(argv: list[str] | None = None) -> int:
             if existing:
                 print(f"Gebruiker '{args.username}' bestaat al.", file=sys.stderr)
                 return 1
-            password = _password(args)
+            password = security.new_app_password() if args.temporary else _password(args)
             if problem := security.password_problem(password):
                 print(problem, file=sys.stderr)
                 return 1
@@ -72,8 +77,11 @@ def main(argv: list[str] | None = None) -> int:
                     username=args.username,
                     password_hash=security.hash_password(password),
                     is_admin=args.admin,
+                    must_change_password=args.temporary,
                 )
             )
+            if args.temporary:
+                print(f"Tijdelijk wachtwoord: {password}")
             print(
                 f"Gebruiker '{args.username}' aangemaakt. Stel 2FA in bij de eerste keer inloggen."
             )

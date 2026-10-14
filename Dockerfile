@@ -29,6 +29,9 @@ COPY schrift schrift
 COPY --from=assets /src/schrift/static/dist schrift/static/dist
 RUN uv sync --frozen --no-dev --extra semantic
 
+ARG GIT_SHA=dev
+ENV SCHRIFT_BUILD=$GIT_SHA
+
 RUN useradd --system --uid 1000 --home-dir /app schrift \
     && mkdir /data && chown schrift:schrift /data
 USER schrift
