@@ -99,7 +99,7 @@ def test_list_and_multiget(dav):
     assert "SUMMARY:[ZOKA] Offerte sturen" in r.text
     assert "DUE:20261020T120000Z" in r.text  # 14:00 Amsterdam (CEST) in UTC
     assert "STATUS:NEEDS-ACTION" in r.text
-    assert "URL:http://localhost/n/" in r.text
+    assert "URL:" not in r.text and "DESCRIPTION:" not in r.text
 
 
 def test_complete_from_phone_updates_markdown(dav):
@@ -181,3 +181,17 @@ def test_options_and_proppatch(dav):
     body = b"""<?xml version="1.0"?><d:propertyupdate xmlns:d="DAV:" xmlns:a="http://apple.com/ns/ical/">
 <d:set><d:prop><a:calendar-order>2</a:calendar-order></d:prop></d:set></d:propertyupdate>"""
     assert dav("PROPPATCH", "/caldav/cas/schrift/", body).status_code == 207
+
+
+def test_old_note_links_from_the_phone_are_dropped(dav):
+    old = "URL:http://localhost/n/x\r\nDESCRIPTION:http://localhost/n/x\r\n"
+    assert (
+        dav(
+            "PUT",
+            "/caldav/cas/schrift/aaaaa.ics",
+            vtodo("aaaaa@schrift", "[ZOKA] Offerte sturen", old),
+        ).status_code
+        == 204
+    )
+    r = dav("GET", "/caldav/cas/schrift/aaaaa.ics")
+    assert "URL:" not in r.text and "DESCRIPTION:" not in r.text

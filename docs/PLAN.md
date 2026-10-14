@@ -18,7 +18,7 @@ Schrift is deployment-onafhankelijk: één Docker-image met een `/data`-volume, 
 | Taakvelden | Titel, status, optioneel een vervaldatum (+ optioneel tijd). Taken zonder datum zijn gewoon mogelijk. |
 | Datumnotatie | `📅 2026-10-20 14:00` in Markdown, in de editor als klikbaar datumpilletje. |
 | Afvinken | `[ ]` wordt `[x]`, regel blijft staan. |
-| Herinneringen | Eén lijst "Schrift" per gebruiker. Map als prefix in titel: `[ZOKA] Offerte sturen`. Notitieveld bevat link naar de notitie. |
+| Herinneringen | Eén lijst "Schrift" per gebruiker. Map als prefix in titel: `[ZOKA] Offerte sturen`. Geen links in de herinneringen (aangepast na ingebruikname). |
 | Wijzigingen uit Herinneringen | Alles terugschrijven: titel, datum, status. Verwijderen in Herinneringen verwijdert de regel uit de notitie (wel in versiegeschiedenis). |
 | Nieuwe taak uit Herinneringen | Gaat naar Inbox (geen map). |
 | Afgeronde taken in de app | Standaard verborgen, filter "toon afgerond". |
@@ -122,7 +122,7 @@ Bij elke schrijfactie (web, MCP, CalDAV) gaat het via één service-laag: Markdo
 ### 4.2 Taken en CalDAV
 - Discovery via `/.well-known/caldav`. Eén takenlijst "Schrift" per gebruiker.
 - Ondersteunt wat Apple Herinneringen gebruikt: `PROPFIND`, `REPORT` (calendar-query, calendar-multiget, sync-collection), `GET`, `PUT`, `DELETE`, ETags en ctag/sync-token.
-- Naar Herinneringen: titel `[ZOKA] Offerte sturen`, `DUE`, `STATUS`, `URL`/notitieveld met link naar de notitie.
+- Naar Herinneringen: titel `[ZOKA] Offerte sturen`, `DUE`, `STATUS`. Geen links.
 - Vanuit Herinneringen: afvinken, titel of datum aanpassen of verwijderen wordt teruggeschreven in de Markdown-regel (de prefix wordt weer gestript). Nieuwe taak komt in Inbox.
 - Inloggen in Herinneringen met gebruikersnaam + app-wachtwoord.
 - Sync-snelheid: zoals iOS het doet (bij openen en periodiek).

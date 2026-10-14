@@ -39,7 +39,8 @@ COLOR = "#2443B0FF"
 SYNC_PREFIX = "http://schrift.app/sync/"
 
 # Properties we write ourselves; everything else a client sends (alarms, sort order,
-# priority…) is kept and sent back unchanged.
+# priority…) is kept and sent back unchanged. URL and DESCRIPTION are listed so the
+# note links older versions of Schrift wrote are dropped instead of kept.
 MANAGED = {
     "UID",
     "SUMMARY",
@@ -114,7 +115,7 @@ def task_context(vault: Vault, task: Task) -> str | None:
     return top.name if top else None
 
 
-def to_ical(vault: Vault, task: Task, base_url: str) -> bytes:
+def to_ical(vault: Vault, task: Task) -> bytes:
     user = vault.user
     tz = user_tz(user)
     cal = Calendar()
@@ -136,14 +137,11 @@ def to_ical(vault: Vault, task: Task, base_url: str) -> bytes:
                 todo.add_component(sub)
             break
     context = task_context(vault, task)
-    url = f"{base_url.rstrip('/')}/n/{task.note_id}"
     todo.add("uid", task.caldav_uid)
     todo.add("summary", f"[{context}] {task.title}" if context else task.title)
     todo.add("dtstamp", task.updated_at.replace(tzinfo=UTC))
     todo.add("created", task.created_at.replace(tzinfo=UTC))
     todo.add("last-modified", task.updated_at.replace(tzinfo=UTC))
-    todo.add("url", url)
-    todo.add("description", url)
     if task.due:
         if len(task.due) > 10:
             local = datetime.fromisoformat(task.due).replace(tzinfo=tz)
@@ -412,10 +410,9 @@ class CalDav:
         self.session = session
         self.user = user
         self.vault = ctx.vault(session, user)
-        self.base_url = ctx.settings.base_url
 
     def ical(self, task: Task) -> bytes:
-        return to_ical(self.vault, task, self.base_url)
+        return to_ical(self.vault, task)
 
     # PROPFIND -------------------------------------------------------------
     async def propfind(self, kind: str, name: str | None) -> Response:

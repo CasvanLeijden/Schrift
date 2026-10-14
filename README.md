@@ -107,7 +107,7 @@ Bewerk je Markdown-bestanden buiten Schrift om (bijvoorbeeld na een restore of m
 2. iPhone of iPad: **Instellingen › Apps › Herinneringen › Herinneringen-accounts › Voeg account toe › Andere › Voeg CalDAV-account toe**. Vul bij Server je domeinnaam in (`schrift.example.com`), plus je gebruikersnaam en het app-wachtwoord.
 3. Andere apps: gebruik de server-URL `https://schrift.example.com/caldav/`.
 
-Je taken verschijnen in de lijst **Schrift**. Taken uit een map krijgen de hoofdmap als voorvoegsel, bijvoorbeeld `[ZOKA] Offerte sturen`. In het notitieveld staat een link naar de notitie. Wat je in de app aanpast (afvinken, titel, datum, verwijderen), wordt teruggeschreven in de notitie. Nieuwe taken uit de app komen in je Inbox.
+Je taken verschijnen in de lijst **Schrift**. Taken uit een map krijgen de hoofdmap als voorvoegsel, bijvoorbeeld `[ZOKA] Offerte sturen`. Wat je in de app aanpast (afvinken, titel, datum, verwijderen), wordt teruggeschreven in de notitie. Nieuwe taken uit de app komen in je Inbox.
 
 ## Claude koppelen (MCP)
 
