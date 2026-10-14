@@ -20,7 +20,10 @@ ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
     UV_PROJECT_ENVIRONMENT=/opt/venv \
     PATH=/opt/venv/bin:$PATH \
-    SCHRIFT_DATA_DIR=/data
+    SCHRIFT_DATA_DIR=/data \
+    HF_HOME=/data/models/huggingface \
+    XDG_CACHE_HOME=/data/cache \
+    HF_HUB_DISABLE_TELEMETRY=1
 
 WORKDIR /app
 COPY pyproject.toml uv.lock README.md ./

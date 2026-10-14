@@ -10,6 +10,7 @@ import logging
 import queue
 import re
 import threading
+import time
 
 import numpy as np
 from sqlalchemy import delete, select
@@ -24,6 +25,7 @@ log = logging.getLogger("schrift.semantic")
 
 CHUNK_CHARS = 900
 MIN_SCORE = 0.3
+RETRY_AFTER = 600  # seconds before trying to load the model again
 
 
 def chunks(title: str, body: str) -> list[str]:
@@ -50,8 +52,9 @@ class SemanticIndex:
         self.cache_dir = data_dir / "models"
         self.model_name = model_name
         self._model = None
-        self._model_failed = False
+        self._failed_at: float | None = None
         self._queue: queue.Queue[str | None] = queue.Queue()
+        self._missed: set[str] = set()
         self._thread: threading.Thread | None = None
         self._lock = threading.Lock()
 
@@ -59,14 +62,20 @@ class SemanticIndex:
 
     def model(self):
         with self._lock:
-            if self._model is None and not self._model_failed:
+            recently_failed = self._failed_at and time.monotonic() - self._failed_at < RETRY_AFTER
+            if self._model is None and not recently_failed:
                 try:
                     from fastembed import TextEmbedding
 
                     self._model = TextEmbedding(self.model_name, cache_dir=str(self.cache_dir))
+                    self._failed_at = None
+                    if self._missed:
+                        for note_id in self._missed:
+                            self._queue.put(note_id)
+                        self._missed.clear()
                 except Exception:
-                    log.exception("Semantic search disabled: could not load the model")
-                    self._model_failed = True
+                    log.exception("Semantic search unavailable: could not load the model")
+                    self._failed_at = time.monotonic()
             return self._model
 
     def embed(self, texts: list[str]) -> np.ndarray:
@@ -128,6 +137,7 @@ class SemanticIndex:
             texts = chunks(note.title, body)
             vectors = self.embed(texts)
             if vectors.size == 0:
+                self._missed.add(note_id)
                 return
             for i, (t, v) in enumerate(zip(texts, vectors, strict=True)):
                 session.add(
