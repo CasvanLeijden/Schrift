@@ -66,3 +66,5 @@ extend-immutable-calls = [
 [tool.ruff.lint.per-file-ignores]
 # Tests contain raw CalDAV XML and iCalendar payloads.
 "tests/*" = ["E501"]
+# Translation keys are full Dutch sentences.
+"schrift/i18n_en.py" = ["E501"]

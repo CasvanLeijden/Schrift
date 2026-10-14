@@ -24,10 +24,10 @@ ENV UV_COMPILE_BYTECODE=1 \
 
 WORKDIR /app
 COPY pyproject.toml uv.lock README.md ./
-RUN uv sync --frozen --no-dev --no-install-project
+RUN uv sync --frozen --no-dev --extra semantic --no-install-project
 COPY schrift schrift
 COPY --from=assets /src/schrift/static/dist schrift/static/dist
-RUN uv sync --frozen --no-dev
+RUN uv sync --frozen --no-dev --extra semantic
 
 RUN useradd --system --uid 1000 --home-dir /app schrift \
     && mkdir /data && chown schrift:schrift /data

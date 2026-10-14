@@ -23,7 +23,7 @@ from schrift.services.search import SearchResult
 log = logging.getLogger("schrift.semantic")
 
 CHUNK_CHARS = 900
-MIN_SCORE = 0.35
+MIN_SCORE = 0.3
 
 
 def chunks(title: str, body: str) -> list[str]:

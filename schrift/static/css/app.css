@@ -467,10 +467,10 @@
   .list {
     @apply rounded-xl border border-line;
   }
-  .list-item {
+  .row-item {
     @apply flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 text-[14px];
   }
-  .list-item + .list-item {
+  .row-item + .row-item {
     @apply border-t border-line;
   }
   .settings-section {
@@ -710,6 +710,11 @@
 .format-bar {
   @apply fixed inset-x-0 z-20 flex gap-0.5 overflow-x-auto border-t border-line bg-side px-2 py-1 md:hidden;
   bottom: calc(56px + env(safe-area-inset-bottom));
+}
+@media (max-width: 767px) {
+  .has-format-bar {
+    padding-bottom: calc(120px + env(safe-area-inset-bottom));
+  }
 }
 .format-bar button {
   @apply inline-flex h-10 min-w-11 items-center justify-center rounded-lg text-[15px] text-text hover:bg-hover;

@@ -122,3 +122,10 @@ def test_scan_imports_external_files(vault):
     note = vault.find_note("Los bestand")
     assert note.folder.name == "Extern" and vault.tasks()[0].title == "doe iets"
     assert vault.scan() == 0
+
+
+def test_renaming_updates_wikilinks(vault):
+    target = vault.create_note("Klant X")
+    source = vault.create_note("Overleg", "# Overleg\n\nZie [[Klant X]] en [[klant x|de klant]].")
+    vault.save(target, "# Klant Xenia\n")
+    assert vault.body(source) == "# Overleg\n\nZie [[Klant Xenia]] en [[Klant Xenia|de klant]]."

@@ -283,6 +283,15 @@ window.Alpine.data('noteEditor', () => {
       el.style.height = el.scrollHeight + 'px'
     },
 
+    fmt(kind) {
+      const chain = editor.chain().focus()
+      if (kind === 'heading') chain.toggleHeading({ level: 2 }).run()
+      else if (kind === 'bold') chain.toggleBold().run()
+      else if (kind === 'task') chain.toggleTaskList().run()
+      else if (kind === 'link') chain.insertContent('[[').run()
+      else if (kind === 'due') this.insertDue()
+    },
+
     focusEditor() {
       editor?.commands.focus('start')
     },

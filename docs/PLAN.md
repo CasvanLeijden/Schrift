@@ -43,13 +43,13 @@ Schrift is deployment-onafhankelijk: één Docker-image met een `/data`-volume, 
 | Backend | Python 3.12, FastAPI, Uvicorn | Gevraagd. |
 | Database | SQLite (WAL-modus), SQLAlchemy 2 + Alembic | Gevraagd. Migraties via Alembic. |
 | Zoeken | SQLite FTS5 | Ingebouwd, snel, geen extra dienst. |
-| Semantisch zoeken | `fastembed` + `multilingual-e5-small` (~120 MB, NL+EN), vectoren in `sqlite-vec` | Lokaal: geen data naar buiten, geen kosten. |
+| Semantisch zoeken | `fastembed` + `paraphrase-multilingual-MiniLM-L12-v2` (~220 MB, NL+EN), vectoren als blobs in SQLite, cosine-zoeken met numpy | Lokaal: geen data naar buiten, geen kosten. Voor een persoonlijke kennisbank is brute-force snel genoeg en scheelt het een native SQLite-extensie. |
 | Templates | Jinja2 + HTMX + Alpine.js | Server-rendered, weinig JavaScript, past bij "simpel". |
 | Styling | Tailwind CSS (standalone CLI, geen Node nodig in productie) | Gevraagd. |
 | Editor | TipTap (ProseMirror) + `tiptap-markdown`, gebundeld met esbuild | Notion-achtige WYSIWYG met betrouwbare Markdown in/uit. Eigen extensies voor datumpilletjes, `[[links]]` en bijlagen. |
 | CalDAV | Eigen minimale CalDAV-implementatie (alleen VTODO) in FastAPI, met `icalendar` | Volledige controle over de koppeling met Markdown-taken. Radicale gebruikt eigen opslag en past daar slecht bij. |
-| MCP | Officiële Python MCP SDK, Streamable HTTP op `/mcp` | Werkt met claude.ai-connectors en Claude Code. |
-| MCP-auth | OAuth 2.1 (PKCE + dynamic client registration) én persoonlijke API-tokens via `Authorization: Bearer` | claude.ai-connectors vereisen OAuth (login met wachtwoord + 2FA). Voor Claude Code is een token in de header het eenvoudigst. |
+| MCP | Officiële Python MCP SDK (v2, `MCPServer`), Streamable HTTP op `/mcp` | Werkt met claude.ai-connectors en Claude Code. |
+| MCP-auth | OAuth 2.1 (PKCE + dynamic client registration) via de OAuth-server van de SDK, gekoppeld aan de eigen login + toestemmingspagina, én persoonlijke API-tokens via `Authorization: Bearer` | claude.ai-connectors vereisen OAuth (login met wachtwoord + 2FA). Voor Claude Code is een token in de header het eenvoudigst. |
 | Auth | argon2 wachtwoord-hashes, `pyotp` voor TOTP, sessie-cookies | |
 | PDF-tekst | `pypdf` | Lichtgewicht. |
 | i18n | Eenvoudige NL/EN-vertaalbestanden (Babel-catalogi) | |
@@ -237,3 +237,14 @@ Elke fase eindigt met iets werkends dat je kunt proberen, en wordt in kleine com
 - Mockup goedgekeurd; mappenboom toont altijd alle notities, in-/uitklapbaar, volgorde zelf te slepen.
 - Instellingen generiek: secties "CalDAV" en "MCP-server" in plaats van "Apple Herinneringen" en "Claude".
 - Notities kunnen naar een andere map gesleept worden; het bestand verhuist mee, de vaste ID houdt links en taken intact.
+
+## 8. Status
+
+Alle fases zijn gebouwd en getest (pytest: vault, Markdown, CalDAV met Apple-achtige verzoeken, MCP inclusief de volledige OAuth-flow, vertalingen; node: Markdown-roundtrip van de editor; handmatig in de browser op desktop en mobiel).
+
+Afwijkingen van het oorspronkelijke plan:
+- Semantisch zoeken gebruikt `paraphrase-multilingual-MiniLM-L12-v2` (het kleine multilinguale model dat fastembed aanbiedt) en numpy in plaats van `sqlite-vec`.
+- Taak-ID's, datums en wikilinks blijven gewone tekst in de editor; decoraties tonen ze als labels en links. Staat de cursor erin, dan zie je de ruwe tekst (zoals in Obsidian). Zo blijft de Markdown altijd exact behouden.
+- Hernoem je een notitie, dan worden `[[links]]` ernaar in andere notities automatisch bijgewerkt.
+
+Nog te doen bij livegang (buiten deze repo): reverse proxy, DNS, backup.

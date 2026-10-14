@@ -34,3 +34,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7.0.1
       - run: docker build -t schrift:ci .
+      - name: Smoke test the image
+        run: |
+          docker run -d --name schrift -p 8000:8000 \
+            -e SCHRIFT_SECRET_KEY=ci -e SCHRIFT_SEMANTIC_SEARCH=false schrift:ci
+          for i in $(seq 30); do curl -fs localhost:8000/healthz && break; sleep 1; done
+          curl -fs localhost:8000/login | grep -q Inloggen
+          docker exec schrift schrift user create admin --admin --password ci-wachtwoord-123
+          docker exec schrift ls /data/schrift.db
+          docker logs schrift

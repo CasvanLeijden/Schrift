@@ -425,8 +425,8 @@ def settings_recovery(request: Request, code: str = Form(""), user: User = UserD
     return render(request, "auth/recovery_codes.html", user=user, codes=codes, next="/settings")
 
 
-def _secret_flash(request: Request, user: User, label: str, secret: str, anchor: str):
-    flash(request, translate(user.language, label), "secret", secret=secret, anchor=anchor)
+def _secret_flash(request: Request, user: User, label: str, secret: str, anchor: str, **kw):
+    flash(request, translate(user.language, label, **kw), "secret", secret=secret, anchor=anchor)
     return redirect(f"/settings#{anchor}")
 
 
@@ -526,7 +526,7 @@ def admin_create_user(
         )
     )
     return _secret_flash(
-        request, admin, f"Tijdelijk wachtwoord voor {username}", password, "gebruikers"
+        request, admin, "Tijdelijk wachtwoord voor {name}", password, "gebruikers", name=username
     )
 
 
@@ -550,7 +550,12 @@ def admin_reset_user(
     if target.id == admin.id:
         request.session["sv"] = target.session_version
     return _secret_flash(
-        request, admin, f"Tijdelijk wachtwoord voor {target.username}", password, "gebruikers"
+        request,
+        admin,
+        "Tijdelijk wachtwoord voor {name}",
+        password,
+        "gebruikers",
+        name=target.username,
     )
 
 

@@ -9,4 +9,7 @@ services:
       SCHRIFT_BASE_URL: https://schrift.example.com
       SCHRIFT_SECRET_KEY: ${SCHRIFT_SECRET_KEY:?set SCHRIFT_SECRET_KEY}
     volumes:
-      - ./data:/data
+      - schrift-data:/data
+
+volumes:
+  schrift-data:

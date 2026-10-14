@@ -10,6 +10,13 @@ from schrift.models import Attachment
 from schrift.services.vault import Vault, VaultError
 
 TEXT_TYPES = ("text/plain", "text/markdown", "text/csv")
+# Images shown inline in notes. SVG is excluded: it can carry scripts, so it is
+# always served as a download.
+IMAGE_TYPES = ("image/png", "image/jpeg", "image/gif", "image/webp")
+
+
+def is_image(attachment: Attachment) -> bool:
+    return attachment.content_type in IMAGE_TYPES
 
 
 def _clean_name(name: str) -> str:
@@ -82,6 +89,6 @@ def note_attachments(vault: Vault, note_id: str) -> list[Attachment]:
 
 def markdown_for(attachment: Attachment) -> str:
     url = attachment_url(attachment).replace(" ", "%20")
-    if attachment.content_type.startswith("image/"):
+    if is_image(attachment):
         return f"![{attachment.filename}]({url})"
     return f"[{attachment.filename}]({url})"

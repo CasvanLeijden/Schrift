@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block title %}{{ note.title }} · Schrift{% endblock %}
 {% block main %}
-<div class="flex min-h-full flex-col" x-data="noteEditor">
+<div class="has-format-bar flex min-h-full flex-col" x-data="noteEditor">
   <header class="topbar">
     <button class="icon-btn md:hidden" @click="drawer = true" aria-label="{{ t('Menu') }}">{{ icon("menu") }}</button>
     <span class="min-w-0 truncate text-muted">
@@ -110,6 +110,14 @@
         <pre class="flex-1 overflow-auto whitespace-pre-wrap p-4 font-serif text-[14px] leading-relaxed" x-text="preview && preview.content"></pre>
       </div>
     </aside>
+  </div>
+  <div class="format-bar" role="toolbar" aria-label="{{ t('Opmaak') }}" @mousedown.prevent>
+    <button type="button" @click="fmt('heading')" aria-label="{{ t('Kop') }}" class="font-semibold">H</button>
+    <button type="button" @click="fmt('bold')" aria-label="{{ t('Vet') }}" class="font-bold">B</button>
+    <button type="button" @click="fmt('task')" aria-label="{{ t('Takenlijst') }}">{{ icon("tasks", 18) }}</button>
+    <button type="button" @click="fmt('due')" aria-label="{{ t('Datum') }}">{{ icon("calendar", 18) }}</button>
+    <button type="button" @click="fmt('link')" aria-label="{{ t('Link naar notitie') }}" class="font-serif">[[ ]]</button>
+    <button type="button" @click="pickFile()" aria-label="{{ t('Bestand of afbeelding') }}">{{ icon("clip", 18) }}</button>
   </div>
   <input type="file" x-ref="file" class="hidden" multiple @change="uploadFiles([...$event.target.files]); $event.target.value = ''">
   <div class="due-popover menu" x-show="due.open" x-cloak :style="due.style" @click.outside="due.open = false" @keydown.escape="due.open = false">

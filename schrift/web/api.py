@@ -9,6 +9,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from schrift import markdown as md
+from schrift.i18n import translate
 from schrift.models import Note, User
 from schrift.services import attachments as att
 from schrift.services.search import hybrid
@@ -404,7 +405,7 @@ def create_task(
 ):
     vault = vault_for(request, session, user)
     if not data.title.strip():
-        return error("Typ eerst een taak.")
+        return error(translate(user.language, "Typ eerst een taak."))
     try:
         note = vault.get_note(data.noteId) if data.noteId else None
         task = vault.create_task(data.title, due=data.due or None, note=note)
@@ -438,6 +439,6 @@ async def upload(
         "id": attachment.id,
         "url": att.attachment_url(attachment),
         "filename": attachment.filename,
-        "isImage": attachment.content_type.startswith("image/"),
+        "isImage": att.is_image(attachment),
         "markdown": att.markdown_for(attachment),
     }

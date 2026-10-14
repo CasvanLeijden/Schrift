@@ -7,6 +7,7 @@ the full-text index, so the three entry points can never drift apart.
 
 import hashlib
 import os
+import re
 import shutil
 import threading
 from collections import defaultdict
@@ -411,6 +412,7 @@ class Vault:
         )
         body = md.assign_task_ids(body, taken)
         title = md.extract_title(body) or note.title or "Naamloos"
+        renamed_from = note.title if (not new and title != note.title) else None
         if title != note.title and not note.is_inbox:
             old = self.file_path(note)
             note.title = title
@@ -441,6 +443,40 @@ class Vault:
         self.session.flush()
         if changed and self.on_change:
             self.on_change(note.id)
+        if renamed_from and renamed_from.lower() != title.lower():
+            self._update_links(note, renamed_from, title, source)
+
+    def _update_links(self, note: Note, old_title: str, new_title: str, source: str) -> None:
+        """Rewrite [[Old title]] to [[New title]] in notes that link to a renamed note."""
+        still_used = self.session.scalar(
+            select(Note.id).where(
+                Note.user_id == self.user.id,
+                Note.deleted_at.is_(None),
+                Note.id != note.id,
+                func.lower(Note.title) == old_title.lower(),
+            )
+        )
+        if still_used:
+            return
+        pattern = re.compile(
+            r"\[\[" + re.escape(old_title) + r"((?:[#|][^\[\]\n]*)?)\]\]", re.IGNORECASE
+        )
+        sources = self.session.scalars(
+            select(Note)
+            .join(Link, Link.source_id == Note.id)
+            .where(
+                Link.target_title == old_title.lower(),
+                Note.user_id == self.user.id,
+                Note.deleted_at.is_(None),
+                Note.id != note.id,
+            )
+            .distinct()
+        )
+        for other in list(sources):
+            body = self.body(other)
+            updated = pattern.sub(lambda m: f"[[{new_title}{m.group(1)}]]", body)
+            if updated != body:
+                self._store(other, updated, source)
 
     def _add_version(self, note: Note, body: str, source: str) -> None:
         last = self.session.scalar(
