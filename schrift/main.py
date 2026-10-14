@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import select
 from starlette.middleware.sessions import SessionMiddleware
 
-from schrift import __version__
+from schrift import __version__, caldav
 from schrift.config import Settings, get_settings
 from schrift.context import AppContext
 from schrift.db import Database
@@ -148,6 +148,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def healthz() -> dict[str, str]:
         return {"status": "ok", "version": __version__}
 
+    @app.api_route("/", methods=["PROPFIND", "OPTIONS"], include_in_schema=False)
+    async def root_dav(request: Request):
+        return await caldav.dispatch(request, "root", None, None)
+
+    app.include_router(caldav.router)
     app.include_router(auth.router)
     app.include_router(api.router)
     app.include_router(pages.router)
