@@ -1,0 +1,18 @@
+{% extends "auth/layout.html" %}
+{% block title %}{{ t("Toegang geven") }} · Schrift{% endblock %}
+{% block card %}
+{% if not data %}
+<h1 class="mb-2 text-lg font-semibold">{{ t("Deze link is verlopen") }}</h1>
+<p class="text-sm text-muted">{{ t("Start het koppelen opnieuw vanuit de app die toegang vraagt.") }}</p>
+{% else %}
+<h1 class="mb-2 text-lg font-semibold">{{ t("{name} wil toegang tot Schrift", name=data.client_name) }}</h1>
+<p class="mb-4 text-sm leading-relaxed text-muted">{{ t("Daarmee kan deze app je notities en taken lezen, maken, wijzigen en naar de prullenbak verplaatsen. Elke wijziging wordt bewaard als versie, zodat je die kunt terugdraaien.") }}</p>
+<p class="mb-5 text-sm">{{ t("Ingelogd als") }} <strong>{{ user.username }}</strong></p>
+<form method="post" action="/oauth/consent" class="flex flex-col gap-3">
+  <input type="hidden" name="r" value="{{ signed }}">
+  <button class="btn btn-primary w-full" name="decision" value="allow">{{ t("Toegang geven") }}</button>
+  <button class="btn w-full" name="decision" value="deny">{{ t("Weigeren") }}</button>
+</form>
+<p class="mt-4 break-all text-[12px] text-muted">{{ t("Terug naar:") }} {{ data.redirect_uri }}</p>
+{% endif %}
+{% endblock %}

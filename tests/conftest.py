@@ -15,7 +15,7 @@ def settings(tmp_path):
     return Settings(
         data_dir=tmp_path / "data",
         secret_key="test",
-        base_url="http://testserver",
+        base_url="http://localhost",
         semantic_search=False,
     )
 

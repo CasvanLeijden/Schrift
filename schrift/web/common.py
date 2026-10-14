@@ -4,6 +4,7 @@ from collections import defaultdict, deque
 from collections.abc import Iterator
 from datetime import UTC, date, datetime
 from pathlib import Path
+from urllib.parse import quote
 
 from fastapi import Depends, Request
 from fastapi.templating import Jinja2Templates
@@ -129,7 +130,8 @@ def current_user_any(request: Request, session: Session = SessionDep) -> User:
     """Logged in, but setup (password change, 2FA) may still be pending."""
     user = _load_user(request, session)
     if user is None:
-        raise NeedLogin(f"/login?next={request.url.path}")
+        target = request.url.path + (f"?{request.url.query}" if request.url.query else "")
+        raise NeedLogin(f"/login?next={quote(target, safe='')}")
     return user
 
 

@@ -99,7 +99,7 @@ def test_list_and_multiget(dav):
     assert "SUMMARY:[ZOKA] Offerte sturen" in r.text
     assert "DUE:20261020T120000Z" in r.text  # 14:00 Amsterdam (CEST) in UTC
     assert "STATUS:NEEDS-ACTION" in r.text
-    assert "URL:http://testserver/n/" in r.text
+    assert "URL:http://localhost/n/" in r.text
 
 
 def test_complete_from_phone_updates_markdown(dav):

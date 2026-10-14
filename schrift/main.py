@@ -9,10 +9,11 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import select
 from starlette.middleware.sessions import SessionMiddleware
 
-from schrift import __version__, caldav
+from schrift import __version__, caldav, oauth
 from schrift.config import Settings, get_settings
 from schrift.context import AppContext
 from schrift.db import Database
+from schrift.mcp_server import build_server, mcp_http_app
 from schrift.migrate import upgrade
 from schrift.models import User
 from schrift.web import api, auth, pages
@@ -27,6 +28,12 @@ CSRF_EXEMPT = ("/caldav", "/.well-known", "/mcp", "/token", "/register", "/revok
 
 
 def build_context(settings: Settings) -> AppContext:
+    base = urlparse(settings.base_url)
+    if base.scheme != "https" and base.hostname not in ("localhost", "127.0.0.1", "::1"):
+        raise SystemExit(
+            f"SCHRIFT_BASE_URL must use https (got {settings.base_url}); "
+            "only localhost may use plain http."
+        )
     settings.data_dir.mkdir(parents=True, exist_ok=True)
     db = Database(settings.db_url)
     upgrade(db.engine)
@@ -53,6 +60,8 @@ def scan_all(ctx: AppContext) -> None:
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or get_settings()
     ctx = build_context(settings)
+    mcp = build_server(ctx)
+    mcp_app = mcp_http_app(mcp)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -60,7 +69,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if ctx.semantic:
             ctx.semantic.start()
             ctx.semantic.schedule_stale()
-        async with ctx.extras["lifespans"]() if "lifespans" in ctx.extras else _null():
+        async with mcp.session_manager.run():
             yield
         if ctx.semantic:
             ctx.semantic.stop()
@@ -156,12 +165,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(auth.router)
     app.include_router(api.router)
     app.include_router(pages.router)
+    app.include_router(oauth.router)
+    # MCP endpoint and OAuth endpoints (/mcp, /authorize, /token, /register, metadata).
+    app.mount("/", mcp_app)
     return app
-
-
-@asynccontextmanager
-async def _null():
-    yield
 
 
 def __getattr__(name: str):
