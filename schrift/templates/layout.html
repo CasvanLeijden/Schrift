@@ -28,7 +28,8 @@
         <template x-for="(r, i) in results" :key="r.id">
           <a :href="'/n/' + r.id" class="search-hit" :class="i === active && 'is-active'">
             <span class="block truncate text-[14px] font-medium" x-text="r.title"></span>
-            <span class="block truncate text-[12px] text-muted" x-html="r.snippet || r.path"></span>
+            <span class="block truncate text-[12px] text-muted" x-show="r.snippet" x-html="r.snippet"></span>
+            <span class="block truncate text-[12px] text-muted" x-show="!r.snippet" x-text="r.path"></span>
           </a>
         </template>
         <p class="px-3 py-2 text-[13px] text-muted" x-show="q && !results.length && !loading">{{ t("Niets gevonden.") }}</p>

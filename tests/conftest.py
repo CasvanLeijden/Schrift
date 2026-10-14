@@ -52,3 +52,12 @@ def client(settings):
     app = create_app(settings)
     with TestClient(app) as c:
         yield c
+
+
+@pytest.fixture(autouse=True)
+def reset_login_limiter():
+    from schrift.web.common import login_limiter
+
+    login_limiter.hits.clear()
+    yield
+    login_limiter.hits.clear()
