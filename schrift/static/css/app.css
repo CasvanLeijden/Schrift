@@ -60,7 +60,6 @@
   --icon: #7b8492;
   --accent: #2443b0;
   --accent-soft: #e8ecfa;
-  --margin: #e0605a;
   --late: #b3261e;
   --late-soft: #fbeae8;
   --ok: #1f7a4d;
@@ -81,7 +80,6 @@
     --icon: #8b94a2;
     --accent: #9db1ff;
     --accent-soft: #252d48;
-    --margin: #a9504b;
     --late: #ff9b92;
     --late-soft: #3a2224;
     --ok: #7fd1a6;
@@ -102,7 +100,6 @@
   --icon: #8b94a2;
   --accent: #9db1ff;
   --accent-soft: #252d48;
-  --margin: #a9504b;
   --late: #ff9b92;
   --late-soft: #3a2224;
   --ok: #7fd1a6;
@@ -122,7 +119,6 @@
   --color-icon: var(--icon);
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
-  --color-margin: var(--margin);
   --color-late: var(--late);
   --color-late-soft: var(--late-soft);
   --color-pill: var(--pill);
@@ -400,11 +396,7 @@
     @apply mb-5 font-serif text-[32px] leading-tight font-semibold tracking-tight;
   }
   .paper {
-    @apply relative w-full max-w-[760px] pl-10 sm:pl-14;
-  }
-  .margin-line {
-    @apply absolute bottom-0 left-[18px] w-px bg-margin sm:left-[30px];
-    top: -3rem;
+    @apply relative w-full max-w-[760px];
   }
   .note-title {
     @apply mb-3 block w-full resize-none overflow-hidden bg-transparent font-serif text-[30px] leading-tight font-semibold tracking-tight text-text outline-none placeholder:text-icon sm:text-[34px];

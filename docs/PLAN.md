@@ -192,7 +192,7 @@ Alternatief dat ik heb bekeken: `ui-ux-pro-max` (community, erg populair, maar d
 
 Mockup: https://claude.ai/artifact/TDfuBS7fKUaAPsqDfnwBmj (bronbestanden in `docs/design/mockup/`).
 
-- **Richting**: een knipoog naar het Nederlandse schoolschrift. Een dunne rode kantlijn links van de notitietekst is het enige opvallende element; de rest is rustig.
+- **Richting**: rustig en typografisch, koningsblauw als accent. (De rode kantlijn uit de mockup is na ingebruikname geschrapt: te druk.)
 - **Kleuren** (licht / donker):
 
 | Token | Licht | Donker | Gebruik |
@@ -204,7 +204,6 @@ Mockup: https://claude.ai/artifact/TDfuBS7fKUaAPsqDfnwBmj (bronbestanden in `doc
 | `muted` | `#5A6473` | `#A2ABB8` | secundaire tekst |
 | `accent` | `#2443B0` | `#9DB1FF` | koningsblauw "inkt": links, selectie, datum |
 | `accent-soft` | `#E8ECFA` | `#252D48` | achtergrond datumpil, actief item |
-| `margin` | `#E0605A` | `#A9504B` | kantlijn |
 | `late` | `#B3261E` | `#FF9B92` | verlopen taken |
 
 - **Typografie**: Literata voor notitietekst en titels (leesletter, 17px / 1.7), Instrument Sans voor de interface. Leesbreedte max ~760px.
