@@ -25,6 +25,7 @@ log = logging.getLogger("schrift.semantic")
 
 CHUNK_CHARS = 900
 MIN_SCORE = 0.3
+EMBED_THREADS = 2
 RETRY_AFTER = 600  # seconds before trying to load the model again
 
 
@@ -67,7 +68,11 @@ class SemanticIndex:
                 try:
                     from fastembed import TextEmbedding
 
-                    self._model = TextEmbedding(self.model_name, cache_dir=str(self.cache_dir))
+                    # An explicit thread count stops onnxruntime from pinning threads to CPUs,
+                    # which fails (noisily) inside containers.
+                    self._model = TextEmbedding(
+                        self.model_name, cache_dir=str(self.cache_dir), threads=EMBED_THREADS
+                    )
                     self._failed_at = None
                     if self._missed:
                         for note_id in self._missed:
