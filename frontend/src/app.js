@@ -139,7 +139,29 @@ Alpine.data('taskList', () => ({
   },
 }))
 
+// While dragging, hovering over a collapsed folder opens it, so you can drop into it.
+function expandOnHover() {
+  let timer = null
+  let row = null
+  document.addEventListener('dragover', (e) => {
+    const target = e.target.closest?.('.tree-folder > .tree-row')
+    if (target === row) return
+    clearTimeout(timer)
+    row = target
+    if (!row) return
+    timer = setTimeout(() => {
+      const data = Alpine.$data(row.parentElement)
+      if (data && !data.open) data.toggle()
+    }, 500)
+  })
+  document.addEventListener('dragend', () => {
+    clearTimeout(timer)
+    row = null
+  })
+}
+
 function initTreeSorting() {
+  expandOnHover()
   const common = {
     animation: 150,
     delay: 180,
