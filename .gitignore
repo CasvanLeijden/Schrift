@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Node / frontend build
+node_modules/
+schrift/static/dist/
+
+# Local data
+/data/
+*.db
+*.db-wal
+*.db-shm
+.env
+
+# Tooling
+bin/
+.claude/skills/
+.claude/settings.local.json
+.DS_Store

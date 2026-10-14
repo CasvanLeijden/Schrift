@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Schrift: instellingen</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=Literata:opsz,wght@7..72,400;7..72,500;7..72,600&amp;family=JetBrains+Mono:wght@400&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#2443B0}a:hover{color:#1A3390}
+.app{--bg:#FFFFFF;--side:#F4F6F9;--line:#E2E6EC;--text:#19202B;--muted:#5A6473;--icon:#7B8492;--accent:#2443B0;--accent-soft:#E8ECFA;--ok:#1F7A4D;--pill:#EEF1F6;--hover:#E9EDF2}
+.app{font-family:'Instrument Sans',system-ui,sans-serif;color:var(--text);background:var(--bg)}
+.app button{font:inherit;cursor:pointer}
+.app button:focus-visible,.app a:focus-visible,.app input:focus-visible,.app select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.nav{display:flex;align-items:center;min-height:36px;padding:0 10px;border-radius:8px;font-size:14px;color:var(--text);text-decoration:none}
+.nav:hover{background:var(--hover)}
+.nav.on{background:var(--accent-soft);color:var(--accent);font-weight:500}
+.sec{padding:28px 0;border-top:1px solid var(--line)}
+.sec h2{font-size:18px;font-weight:600;margin:0 0 4px}
+.sec .lead{font-size:14px;color:var(--muted);margin:0 0 18px;max-width:560px;line-height:1.5}
+.field{display:grid;grid-template-columns:200px minmax(0,1fr);gap:8px 24px;align-items:center;padding:8px 0;font-size:14px}
+.field>span:first-child{color:var(--muted)}
+.input{height:38px;border:1px solid var(--line);border-radius:8px;padding:0 10px;font:inherit;font-size:14px;color:var(--text);background:var(--bg);box-sizing:border-box}
+.btn{height:38px;padding:0 14px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:14px;font-weight:500}
+.btn:hover{background:var(--hover)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#FFFFFF}
+.btn.quiet{border-color:transparent;color:var(--muted)}
+.code{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:13px;background:var(--side);border:1px solid var(--line);border-radius:8px;padding:10px 12px;overflow-x:auto;white-space:nowrap}
+.list{border:1px solid var(--line);border-radius:10px}
+.item{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;padding:12px 14px;font-size:14px}
+.item+.item{border-top:1px solid var(--line)}
+.item .meta{color:var(--muted);font-size:13px}
+.badge{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px;border-radius:12px;background:#E5F3EC;color:var(--ok);font-size:13px;font-weight:500}
+</style>
+</helmet>
+<div class="app" style="display: flex; flex-wrap: wrap; min-height: 980px">
+
+<nav aria-label="Instellingen" style="flex: 1 1 248px; max-width: 100%; background: var(--side); border-right: 1px solid var(--line); padding: 20px 12px; box-sizing: border-box; display: flex; flex-direction: column; gap: 2px">
+<a class="nav" href="Main.dc.html" style="color: var(--muted); margin-bottom: 14px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right: 8px"><path d="m15 5-7 7 7 7"></path></svg>Terug naar notities</a>
+<a class="nav on" href="#algemeen" aria-current="true">Algemeen</a>
+<a class="nav" href="#beveiliging">Beveiliging</a>
+<a class="nav" href="#caldav">CalDAV</a>
+<a class="nav" href="#mcp">MCP-server</a>
+<a class="nav" href="#gebruikers">Gebruikers</a>
+</nav>
+
+<main style="flex: 999 1 560px; min-width: 0; padding: 40px 32px 80px; box-sizing: border-box">
+<div style="max-width: 760px">
+<h1 style="font-family: 'Literata', serif; font-size: 34px; font-weight: 600; margin: 0 0 24px; letter-spacing: -0.015em">Instellingen</h1>
+
+<section class="sec" id="algemeen">
+<h2>Algemeen</h2>
+<p class="lead">Wijzigingen worden direct opgeslagen.</p>
+<label class="field"><span>Taal</span><select class="input" style="max-width: 240px"><option>Nederlands</option><option>English</option></select></label>
+<label class="field"><span>Thema</span><select class="input" style="max-width: 240px"><option>Volg systeem</option><option>Licht</option><option>Donker</option></select></label>
+</section>
+
+<section class="sec" id="beveiliging">
+<h2>Beveiliging</h2>
+<div class="field"><span>Wachtwoord</span><div><button class="btn">Wachtwoord wijzigen</button></div></div>
+<div class="field"><span>Tweestapsverificatie</span><div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px"><span class="badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg>Aan</span><button class="btn quiet">Herstelcodes tonen</button></div></div>
+</section>
+
+<section class="sec" id="caldav">
+<h2>CalDAV</h2>
+<p class="lead">Synchroniseer je taken met elke app die CalDAV ondersteunt, zoals Apple Herinneringen, Thunderbird of DAVx⁵. Gebruik per apparaat een eigen app-wachtwoord. Taken verschijnen in de lijst Schrift.</p>
+<div class="field"><span>Server-URL</span><div class="code">https://schrift.example.com/caldav/</div></div>
+<div class="field"><span>Gebruikersnaam</span><div class="code">cas</div></div>
+<div class="field" style="align-items: start"><span style="padding-top: 12px">App-wachtwoorden</span>
+<div>
+<div class="list">
+<div class="item"><span style="font-weight: 500">iPhone Cas</span><span class="meta">laatst gebruikt 8 minuten geleden</span><button class="btn quiet" style="margin-left: auto">Intrekken</button></div>
+<div class="item"><span style="font-weight: 500">MacBook</span><span class="meta">laatst gebruikt gisteren</span><button class="btn quiet" style="margin-left: auto">Intrekken</button></div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px">
+<input class="input" placeholder="Naam van het apparaat" aria-label="Naam van het apparaat" style="flex: 1 1 220px">
+<button class="btn primary">App-wachtwoord maken</button>
+</div>
+</div>
+</div>
+</section>
+
+<section class="sec" id="mcp">
+<h2>MCP-server</h2>
+<p class="lead">Geef een AI-assistent toegang tot je notities en taken. Clients met inloggen (OAuth), zoals claude.ai, koppel je via de server-URL. Andere clients, zoals Claude Code, gebruiken een token in de Authorization-header.</p>
+<div class="field"><span>Server-URL</span><div class="code">https://schrift.example.com/mcp</div></div>
+<div class="field" style="align-items: start"><span style="padding-top: 12px">Tokens</span>
+<div>
+<div class="list">
+<div class="item"><span style="font-weight: 500">Claude Code laptop</span><span class="meta">aangemaakt 14 okt</span><button class="btn quiet" style="margin-left: auto">Intrekken</button></div>
+<div class="item" style="background: var(--accent-soft); flex-direction: column; align-items: stretch">
+<span style="font-weight: 500">Nieuw token: Claude Code server</span>
+<span class="meta">Kopieer het nu, het wordt hierna niet meer getoond. Voorbeeld voor Claude Code:</span>
+<div class="code" style="background: var(--bg)">claude mcp add --transport http schrift https://schrift.example.com/mcp --header "Authorization: Bearer sk_schrift_[TOKEN]"</div>
+<div><button class="btn">Kopiëren</button></div>
+</div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px">
+<input class="input" placeholder="Naam van het token" aria-label="Naam van het token" style="flex: 1 1 220px">
+<button class="btn primary">Token maken</button>
+</div>
+</div>
+</div>
+<div class="field"><span>Gekoppelde clients</span><div style="font-size: 14px">claude.ai (via inloggen) <button class="btn quiet" style="height: 30px; padding: 0 6px">Ontkoppelen</button></div></div>
+</section>
+
+<section class="sec" id="gebruikers">
+<h2>Gebruikers</h2>
+<p class="lead">Alleen zichtbaar voor beheerders. Iedere gebruiker heeft eigen notities en taken.</p>
+<div class="list">
+<div class="item"><span style="font-weight: 500">cas</span><span class="meta">beheerder</span></div>
+<div class="item"><span style="font-weight: 500">[GEBRUIKER]</span><span class="meta">2FA nog niet ingesteld</span><button class="btn quiet" style="margin-left: auto">Wachtwoord resetten</button></div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px">
+<input class="input" placeholder="Gebruikersnaam" aria-label="Gebruikersnaam" style="flex: 1 1 200px">
+<button class="btn primary">Gebruiker toevoegen</button>
+</div>
+</section>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":980}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

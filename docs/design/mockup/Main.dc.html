@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Schrift: notitie</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;family=Literata:opsz,wght@7..72,400;7..72,500;7..72,600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#2443B0}a:hover{color:#1A3390}
+.app{--bg:#FFFFFF;--side:#F4F6F9;--line:#E2E6EC;--text:#19202B;--muted:#5A6473;--icon:#7B8492;--accent:#2443B0;--accent-soft:#E8ECFA;--margin:#E0605A;--pill:#EEF1F6;--hover:#E9EDF2}
+.app.dark{--bg:#16191F;--side:#1C2028;--line:#2C323C;--text:#E5E8EE;--muted:#A2ABB8;--icon:#8B94A2;--accent:#9DB1FF;--accent-soft:#252D48;--margin:#A9504B;--pill:#262B35;--hover:#252A33}
+.app{font-family:'Instrument Sans',system-ui,sans-serif;color:var(--text);background:var(--bg)}
+.app button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.app button:focus-visible,.app a:focus-visible,.app input:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.nav{display:flex;align-items:center;gap:10px;width:100%;min-height:36px;padding:0 10px;border-radius:8px;font-size:14px;color:var(--text);text-decoration:none;box-sizing:border-box}
+.nav:hover{background:var(--hover)}
+.nav.on{background:var(--accent-soft);color:var(--accent);font-weight:500}
+.nav svg{flex:none;color:var(--icon)}
+.nav.on svg{color:var(--accent)}
+.count{margin-left:auto;font-size:12px;color:var(--muted)}
+.group{font-size:12px;color:var(--muted);padding:18px 10px 6px;font-weight:500}
+.prose{font-family:'Literata',Georgia,serif;font-size:17px;line-height:1.7}
+.prose h2{font-family:'Instrument Sans',system-ui,sans-serif;font-size:15px;font-weight:600;margin:32px 0 8px;letter-spacing:0}
+.prose p{margin:0 0 12px}
+.prose ul{margin:0 0 12px;padding-left:22px}
+.chip{display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 10px;border-radius:13px;background:var(--pill);font-size:13px;color:var(--muted)}
+.task{display:flex;align-items:flex-start;gap:12px;padding:4px 0}
+.box{flex:none;width:20px;height:20px;margin-top:5px;border:1.5px solid var(--icon);border-radius:5px;display:flex;align-items:center;justify-content:center;padding:0 !important}
+.box.done{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.due{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;margin-left:8px;border-radius:6px;background:var(--accent-soft);color:var(--accent) !important;font-family:'Instrument Sans',sans-serif;font-size:13px;font-weight:500;vertical-align:2px}
+.wiki{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent-soft)}
+.iconbtn{width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;color:var(--icon) !important}
+.iconbtn:hover{background:var(--hover)}
+.kids{display:flex;flex-direction:column;margin-left:16px;padding-left:8px;border-left:1px solid var(--line)}
+.note{font-size:13px;min-height:32px}
+.chev{flex:none;transition:transform .15s;color:var(--icon)}
+.over{box-shadow:inset 0 2px 0 var(--accent)}
+.nav[draggable="true"]{cursor:pointer}
+</style>
+</helmet>
+<div class="app {{themeClass}}" style="display: flex; flex-wrap: wrap; min-height: 980px">
+
+<nav aria-label="Navigatie" style="flex: 1 1 248px; max-width: 100%; background: var(--side); border-right: 1px solid var(--line); padding: 16px 12px; box-sizing: border-box; display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 10px 14px">
+<span style="font-family: 'Literata', serif; font-size: 22px; font-weight: 600; letter-spacing: -0.01em">Schrift</span>
+<button class="iconbtn" aria-label="Nieuwe notitie"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+</div>
+<label style="display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); font-size: 14px; color: var(--muted); margin-bottom: 10px">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+<input type="search" placeholder="Zoeken" aria-label="Zoeken in notities" style="border: 0; background: none; outline: none; font: inherit; color: var(--text); flex: 1; min-width: 0">
+<kbd style="font-family: inherit; font-size: 11px; border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px">Ctrl K</kbd>
+</label>
+<a class="nav" href="Taken.dc.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"></rect><path d="m8.5 12 2.5 2.5 4.5-5"></path></svg>Taken<span class="count">7</span></a>
+<a class="nav" href="#"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 13h4l1.5 3h5L16 13h4"></path><path d="M5.5 6h13L20 13v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-5z"></path></svg>Inbox<span class="count">3</span></a>
+
+<div class="group">Mappen</div>
+<sc-for list="{{folders}}" as="f" hint-placeholder-count="3">
+<button class="nav {{f.overCls}}" draggable="true" aria-expanded="{{f.open}}" onClick="{{f.toggle}}" onDragStart="{{f.onDragStart}}" onDragOver="{{f.onDragOver}}" onDrop="{{f.onDrop}}" onDragEnd="{{f.onDragEnd}}"><svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transform: {{f.rot}}"><path d="m9 6 6 6-6 6"></path></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 7a1.5 1.5 0 0 1 1.5-1.5h4l2 2.5h8a1.5 1.5 0 0 1 1.5 1.5V17a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 17z"></path></svg>{{f.name}}</button>
+<sc-if value="{{f.open}}" hint-placeholder-val="{{ false }}">
+<div class="kids">
+<sc-for list="{{f.subs}}" as="sf" hint-placeholder-count="2">
+<button class="nav {{sf.overCls}}" draggable="true" aria-expanded="{{sf.open}}" onClick="{{sf.toggle}}" onDragStart="{{sf.onDragStart}}" onDragOver="{{sf.onDragOver}}" onDrop="{{sf.onDrop}}" onDragEnd="{{sf.onDragEnd}}"><svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transform: {{sf.rot}}"><path d="m9 6 6 6-6 6"></path></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 7a1.5 1.5 0 0 1 1.5-1.5h4l2 2.5h8a1.5 1.5 0 0 1 1.5 1.5V17a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 17z"></path></svg>{{sf.name}}</button>
+<sc-if value="{{sf.open}}" hint-placeholder-val="{{ false }}">
+<div class="kids">
+<sc-for list="{{sf.notes}}" as="n" hint-placeholder-count="3">
+<a class="nav note {{n.cls}} {{n.overCls}}" href="#" draggable="true" onDragStart="{{n.onDragStart}}" onDragOver="{{n.onDragOver}}" onDrop="{{n.onDrop}}" onDragEnd="{{n.onDragEnd}}"><span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{n.title}}</span></a>
+</sc-for>
+</div>
+</sc-if>
+</sc-for>
+<sc-for list="{{f.notes}}" as="n" hint-placeholder-count="3">
+<a class="nav note {{n.cls}} {{n.overCls}}" href="#" draggable="true" onDragStart="{{n.onDragStart}}" onDragOver="{{n.onDragOver}}" onDrop="{{n.onDrop}}" onDragEnd="{{n.onDragEnd}}"><span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{n.title}}</span></a>
+</sc-for>
+</div>
+</sc-if>
+</sc-for>
+
+<div class="group">Tags</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; padding: 0 10px">
+<a class="chip" href="#" style="text-decoration: none">klant-x</a>
+<a class="chip" href="#" style="text-decoration: none">offerte</a>
+<a class="chip" href="#" style="text-decoration: none">q4</a>
+<a class="chip" href="#" style="text-decoration: none">recepten</a>
+</div>
+
+<div style="margin-top: auto; padding-top: 24px; display: flex; align-items: center; gap: 10px; padding-left: 10px">
+<span style="width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: var(--bg); display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600">C</span>
+<span style="font-size: 14px">Cas</span>
+<button class="iconbtn" aria-label="{{themeLabel}}" onClick="{{toggleTheme}}" style="margin-left: auto"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"></path></svg></button>
+<a class="iconbtn" href="Instellingen.dc.html" aria-label="Instellingen"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6a7 7 0 0 0 0 2.4l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z"></path></svg></a>
+</div>
+</nav>
+
+<main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; min-height: 56px; padding: 0 20px; border-bottom: 1px solid var(--line); font-size: 14px">
+<span style="color: var(--muted)">ZOKA <span aria-hidden="true">/</span> Verslagen</span>
+<span style="margin-left: auto; color: var(--muted); display: inline-flex; align-items: center; gap: 6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg>Opgeslagen</span>
+<button style="display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 10px; border-radius: 8px; color: var(--muted)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 12a8.5 8.5 0 1 0 2.5-6"></path><path d="M3.5 4v4h4"></path><path d="M12 8v4l3 2"></path></svg>Gewijzigd door Claude om 10:30</button>
+<button class="iconbtn" aria-label="Meer acties"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg></button>
+</header>
+
+<div style="flex: 1; display: flex; justify-content: center; padding: 48px 24px 80px">
+<article style="position: relative; width: 100%; max-width: 760px; padding-left: 56px; box-sizing: border-box">
+<div aria-hidden="true" style="position: absolute; left: 30px; top: -48px; bottom: -80px; width: 1px; background: var(--margin)"></div>
+
+<h1 style="font-family: 'Literata', serif; font-size: 34px; line-height: 1.2; font-weight: 600; margin: 0 0 14px; letter-spacing: -0.015em">Overleg Klant X: planning Q4</h1>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 22px">
+<span class="chip">klant-x</span>
+<span class="chip">offerte</span>
+<button class="chip" style="background: none; border: 1px dashed var(--line)">Tag toevoegen</button>
+</div>
+
+<dl style="display: grid; grid-template-columns: max-content 1fr; gap: 6px 20px; margin: 0 0 28px; font-size: 14px">
+<dt style="color: var(--muted)">Datum</dt><dd style="margin: 0">14 oktober 2026</dd>
+<dt style="color: var(--muted)">Deelnemers</dt><dd style="margin: 0">Cas, Jan (Klant X)</dd>
+<dt style="color: var(--muted)">Over</dt><dd style="margin: 0"><a class="wiki" href="#">Klant X</a></dd>
+</dl>
+
+<div class="prose">
+<h2>Samenvatting</h2>
+<p>Klant X wil fase 2 nog dit kwartaal starten. Budget is akkoord; de planning hangt af van de offerte en de beschikbaarheid van het team in november.</p>
+<h2>Besluiten</h2>
+<ul>
+<li>Fase 2 start uiterlijk 1 december.</li>
+<li>Wekelijks kort overleg op dinsdag.</li>
+</ul>
+<h2>Actiepunten</h2>
+<div class="task">
+<button class="box {{t1.cls}}" aria-pressed="{{t1.done}}" aria-label="Offerte sturen afvinken" onClick="{{t1.toggle}}"><sc-if value="{{t1.done}}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg></sc-if></button>
+<span style="color: {{t1.color}}">Offerte sturen voor fase 2<button class="due"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"></rect><path d="M4 10h16M9 3v4M15 3v4"></path></svg>ma 20 okt, 14:00</button></span>
+</div>
+<div class="task">
+<button class="box {{t2.cls}}" aria-pressed="{{t2.done}}" aria-label="Planning delen afvinken" onClick="{{t2.toggle}}"><sc-if value="{{t2.done}}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg></sc-if></button>
+<span style="color: {{t2.color}}">Planning delen met het team</span>
+</div>
+<div class="task">
+<button class="box {{t3.cls}}" aria-pressed="{{t3.done}}" aria-label="Agenda rondsturen afvinken" onClick="{{t3.toggle}}"><sc-if value="{{t3.done}}" hint-placeholder-val="{{ true }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg></sc-if></button>
+<span style="color: {{t3.color}}">Agenda rondsturen</span>
+</div>
+<ul style="margin-top: 6px">
+<li>Jan: contract nalezen en terugsturen</li>
+</ul>
+<h2>Vervolg</h2>
+<p>Volgend overleg dinsdag 21 oktober. Zie ook <a class="wiki" href="#">Projectplan fase 2</a>.</p>
+</div>
+
+<details style="margin-top: 28px; border-top: 1px solid var(--line); padding-top: 14px; font-size: 14px">
+<summary style="cursor: pointer; color: var(--muted)">Ruwe aantekeningen</summary>
+<p style="font-family: 'Literata', serif; white-space: pre-line; color: var(--muted); line-height: 1.6">jan - budget ok, fase 2 dit kw
+offerte voor 20e!!
+planning team nov krap
+agenda rondsturen</p>
+</details>
+
+<section aria-label="Bijlagen en verwijzingen" style="margin-top: 36px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; font-size: 14px">
+<div>
+<h3 style="font-size: 13px; font-weight: 500; color: var(--muted); margin: 0 0 8px">Gelinkt vanuit</h3>
+<a class="nav" href="#" style="padding-left: 0">Klant X</a>
+<a class="nav" href="#" style="padding-left: 0">Weekplanning 42</a>
+</div>
+<div>
+<h3 style="font-size: 13px; font-weight: 500; color: var(--muted); margin: 0 0 8px">Bijlagen</h3>
+<a class="nav" href="#" style="padding-left: 0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5"></path></svg>offerte-fase1.pdf<span class="count">240 kB</span></a>
+</div>
+</section>
+</article>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":980}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const n = (t, active) => ({ title: t, active: !!active });
+    this.state = { dark: null, over: null, done: { t1: false, t2: false, t3: true },
+      tree: [
+        { id: 'prive', name: 'Prive', open: false, subs: [], notes: [n('Boodschappen'), n('Recepten'), n('Vakantie 2027')] },
+        { id: 'forfacts', name: 'Forfacts', open: false, subs: [], notes: [n('Administratie Q3'), n('Jaarplanning')] },
+        { id: 'zoka', name: 'ZOKA', open: true, notes: [n('Visie 2027')], subs: [
+          { id: 'klanten', name: 'Klanten', open: false, subs: [], notes: [n('Klant X'), n('Klant Y'), n('Klant Z')] },
+          { id: 'projecten', name: 'Projecten', open: false, subs: [], notes: [n('Projectplan fase 2')] },
+          { id: 'verslagen', name: 'Verslagen', open: true, subs: [], notes: [
+            n('Overleg Klant X: planning Q4', true), n('Teamoverleg week 41'), n('Kickoff Klant Y'), n('Evaluatie fase 1'),
+            n('Teamoverleg week 39'), n('Overleg Klant X: oplevering fase 1'), n('Teamoverleg week 37'), n('Sessie huisstijl'),
+            n('Teamoverleg week 35'), n('Intake Klant Z'), n('Heidag ZOKA'), n('Teamoverleg week 33')] }
+        ] }
+      ] };
+  }
+  arr(tree, list) {
+    if (list === 'root') return tree;
+    const [kind, path] = list.split(':');
+    const parts = path.split('/');
+    let f = tree.find((x) => x.id === parts[0]);
+    if (parts[1]) f = f.subs.find((x) => x.id === parts[1]);
+    return kind === 'subs' ? f.subs : f.notes;
+  }
+  move(list, from, to) {
+    const tree = JSON.parse(JSON.stringify(this.state.tree));
+    const a = this.arr(tree, list);
+    const [item] = a.splice(from, 1);
+    a.splice(to, 0, item);
+    this.setState({ tree, over: null });
+  }
+  toggleFolder(path) {
+    const tree = JSON.parse(JSON.stringify(this.state.tree));
+    const parts = path.split('/');
+    let f = tree.find((x) => x.id === parts[0]);
+    if (parts[1]) f = f.subs.find((x) => x.id === parts[1]);
+    f.open = !f.open;
+    this.setState({ tree });
+  }
+  drag(list, i) {
+    const k = list + '#' + i;
+    return {
+      overCls: this.state.over === k ? 'over' : '',
+      onDragStart: (e) => { this.dragging = { list, i }; if (e.dataTransfer) { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', k); } },
+      onDragOver: (e) => { if (this.dragging && this.dragging.list === list) { e.preventDefault(); if (this.state.over !== k) this.setState({ over: k }); } },
+      onDrop: (e) => { e.preventDefault(); if (this.dragging && this.dragging.list === list) this.move(list, this.dragging.i, i); this.dragging = null; },
+      onDragEnd: () => { this.dragging = null; if (this.state.over) this.setState({ over: null }); }
+    };
+  }
+  renderVals() {
+    const dark = this.state.dark ?? (this.props.dark ?? false);
+    const mk = (k) => {
+      const d = this.state.done[k];
+      return { done: d, cls: d ? 'done' : '', color: d ? 'var(--muted)' : 'var(--text)',
+        toggle: () => this.setState({ done: { ...this.state.done, [k]: !d } }) };
+    };
+    const notes = (list, ns) => ns.map((x, j) => ({ title: x.title, cls: x.active ? 'on' : '', ...this.drag(list, j) }));
+    const folder = (f, path, list, i) => ({
+      name: f.name, open: f.open, rot: f.open ? 'rotate(90deg)' : 'none',
+      toggle: () => this.toggleFolder(path), ...this.drag(list, i),
+      notes: notes('notes:' + path, f.notes),
+      subs: f.subs.map((sf, k) => folder(sf, path + '/' + sf.id, 'subs:' + path, k))
+    });
+    return {
+      themeClass: dark ? 'dark' : '',
+      themeLabel: dark ? 'Licht thema' : 'Donker thema',
+      toggleTheme: () => this.setState({ dark: !dark }),
+      folders: this.state.tree.map((f, i) => folder(f, f.id, 'root', i)),
+      t1: mk('t1'), t2: mk('t2'), t3: mk('t3')
+    };
+  }
+}
+</script>
+</body>
+</html>
