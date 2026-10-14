@@ -1,0 +1,13 @@
+{% extends "auth/layout.html" %}
+{% block title %}{{ t("Herstelcodes") }} · Schrift{% endblock %}
+{% block card %}
+<h1 class="mb-2 text-lg font-semibold">{{ t("Bewaar je herstelcodes") }}</h1>
+<p class="mb-5 text-sm leading-relaxed text-muted">{{ t("Met een herstelcode kun je inloggen als je je telefoon kwijt bent. Elke code werkt één keer. Ze worden hierna niet meer getoond.") }}</p>
+<ul class="mb-5 grid grid-cols-2 gap-2 rounded-lg bg-side p-4 font-mono text-[14px]">
+  {% for code in codes %}<li>{{ code }}</li>{% endfor %}
+</ul>
+<div class="flex flex-col gap-3" x-data>
+  <button type="button" class="btn w-full" onclick="navigator.clipboard.writeText({{ codes | join('\n') | tojson | forceescape }}); this.textContent={{ t('Gekopieerd') | tojson | forceescape }}">{{ t("Kopiëren") }}</button>
+  <a class="btn btn-primary w-full" href="{{ next }}">{{ t("Ik heb ze bewaard") }}</a>
+</div>
+{% endblock %}

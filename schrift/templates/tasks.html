@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+{% set active = "tasks" %}
+{% block title %}{{ t("Taken") }} · Schrift{% endblock %}
+{% block main %}
+<header class="topbar md:hidden">
+  <button class="icon-btn" @click="drawer = true" aria-label="{{ t('Menu') }}">{{ icon("menu") }}</button>
+</header>
+<div class="flex justify-center px-4 pb-24 pt-8 sm:px-6 md:pt-10" x-data="taskList">
+  <div class="w-full max-w-[820px]">
+    <h1 class="page-title">{{ t("Taken") }}</h1>
+
+    <div class="mb-5 flex flex-wrap items-center gap-1.5">
+      {% set qs_done = "&done=1" if show_done else "" %}
+      <a class="seg {% if not active_filter %}is-on{% endif %}" href="/tasks{{ '?done=1' if show_done else '' }}" {% if not active_filter %}aria-current="true"{% endif %}>{{ t("Alles") }}</a>
+      {% for c in contexts + ["Inbox"] %}
+      <a class="seg {% if active_filter == c %}is-on{% endif %}" href="/tasks?f={{ c | urlencode }}{{ qs_done }}" {% if active_filter == c %}aria-current="true"{% endif %}>{{ t(c) if c == "Inbox" else c }}</a>
+      {% endfor %}
+      <a class="switch ml-auto" role="switch" aria-checked="{{ 'true' if show_done else 'false' }}"
+         href="/tasks?{{ ('f=' ~ (active_filter | urlencode) ~ '&') if active_filter else '' }}{{ '' if show_done else 'done=1' }}">
+        <span class="switch-track {% if show_done %}is-on{% endif %}"><span class="switch-knob"></span></span>{{ t("Toon afgerond") }}
+      </a>
+    </div>
+
+    <form method="post" action="/tasks" class="quick-add" x-data="{ due: '' }">
+      <input type="hidden" name="f" value="{{ active_filter }}">
+      {{ icon("plus", 18, "text-icon") }}
+      <input name="title" class="min-w-0 flex-1 bg-transparent text-[15px] outline-none" placeholder="{{ t('Nieuwe taak, Enter om toe te voegen aan Inbox') }}" aria-label="{{ t('Nieuwe taak') }}" autocomplete="off" required>
+      <label class="due-input" title="{{ t('Datum') }}">
+        {{ icon("calendar", 16) }}
+        <input type="date" name="due" x-model="due" aria-label="{{ t('Datum') }}" class="w-[8.5rem] bg-transparent text-[13px] outline-none" :class="!due && 'text-muted'">
+      </label>
+    </form>
+
+    {% for label, items in groups %}
+    <section class="mt-6">
+      <h2 class="task-group {% if label == 'Verlopen' %}text-late{% endif %}">{{ t(label) }} <span class="font-normal text-muted">{{ items | length }}</span></h2>
+      <ul>
+        {% for task in items %}
+        {% set ctx_name = context_of(task) %}
+        <li class="task-row" :class="done['{{ task.short_id }}'] && 'is-done'" x-init="done['{{ task.short_id }}'] = {{ 'true' if task.done else 'false' }}">
+          <button class="task-box" :class="done['{{ task.short_id }}'] && 'is-checked'" :aria-pressed="(!!done['{{ task.short_id }}']).toString()"
+                  @click="toggle('{{ task.short_id }}')" aria-label="{{ t('Afvinken') }}: {{ task.title }}">{{ icon("check", 13) }}</button>
+          <div class="min-w-0 flex-1">
+            <div class="task-title">{{ task.title }}</div>
+            <a class="task-src" href="/n/{{ task.note_id }}">{{ t("Inbox") if task.note.is_inbox else (ctx_name ~ " › " ~ task.note.title if ctx_name and ctx_name != task.note.title else task.note.title) }}</a>
+          </div>
+          {% if task.due %}
+          <span class="due-pill static {% if task.due[:10] < today and not task.done %}due-late{% endif %}" data-label="{{ task.due | due_label(lang) }}"></span>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% else %}
+    <div class="empty">
+      <p class="font-serif text-[20px]">{{ t("Niets te doen.") }}</p>
+      <p class="mt-1 text-muted">{{ t("Typ hierboven een taak, of zet '- [ ]' voor een regel in een notitie.") }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

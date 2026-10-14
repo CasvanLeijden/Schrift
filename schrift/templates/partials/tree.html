@@ -1,0 +1,53 @@
+{% from "partials/icons.html" import icon %}
+
+{% macro note_item(note) -%}
+<li class="tree-note" data-note-id="{{ note.id }}">
+  <a class="nav nav-note {% if current_note and current_note.id == note.id %}is-active{% endif %}" href="/n/{{ note.id }}"
+     {% if current_note and current_note.id == note.id %}aria-current="page"{% endif %}>
+    <span class="truncate">{{ note.title }}</span>
+  </a>
+</li>
+{%- endmacro %}
+
+{% macro folder_item(node) -%}
+{% set f = node.folder %}
+<li class="tree-folder" data-folder-id="{{ f.id }}"
+    x-data="folderItem({{ f.id }}, {{ 'true' if f.id in expanded else 'false' }})">
+  <div class="tree-row">
+    <button class="nav nav-folder" @click="toggle()" :aria-expanded="open.toString()" x-show="!renaming">
+      <span class="chev" :class="open && 'is-open'">{{ icon("chevron", 12) }}</span>
+      {{ icon("folder", 16) }}
+      <span class="truncate">{{ f.name }}</span>
+    </button>
+    <form x-show="renaming" x-cloak class="flex-1" @submit.prevent="rename($refs.name.value)">
+      <input x-ref="name" class="input input-sm" value="{{ f.name }}" @keydown.escape="renaming = false" @blur="renaming = false" aria-label="{{ t('Nieuwe naam') }}">
+    </form>
+    <div class="row-actions" x-show="!renaming">
+      <button class="icon-btn icon-btn-sm" @click="newNote({{ f.id }})" aria-label="{{ t('Nieuwe notitie in {name}', name=f.name) }}" title="{{ t('Nieuwe notitie') }}">{{ icon("plus", 15) }}</button>
+      <div class="relative" @click.outside="menu = false; confirming = false">
+        <button class="icon-btn icon-btn-sm" @click="menu = !menu" :aria-expanded="menu.toString()" aria-label="{{ t('Meer acties voor {name}', name=f.name) }}">{{ icon("more", 15) }}</button>
+        <div class="menu right-0 top-8 w-52" x-show="menu" x-cloak>
+          <button class="menu-item" @click="menu = false; addingSub = true; open = true; $nextTick(() => $refs.sub.focus())">{{ t("Nieuwe submap") }}</button>
+          <button class="menu-item" @click="menu = false; renaming = true; $nextTick(() => { $refs.name.focus(); $refs.name.select() })">{{ t("Hernoemen") }}</button>
+          <button class="menu-item text-late" x-show="!confirming" @click="confirming = true">{{ t("Verwijderen") }}</button>
+          <div x-show="confirming" class="px-3 py-2 text-[13px]">
+            <p class="mb-2 text-muted">{{ t("Notities in deze map gaan naar de prullenbak.") }}</p>
+            <button class="btn btn-danger btn-sm" @click="remove()">{{ t("Map verwijderen") }}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tree-kids" x-show="open" {% if f.id not in expanded %}x-cloak{% endif %}>
+    <form x-show="addingSub" x-cloak class="pb-1" @submit.prevent="createFolder({{ f.id }}, $refs.sub.value); addingSub = false">
+      <input x-ref="sub" class="input input-sm" placeholder="{{ t('Naam van de submap') }}" @keydown.escape="addingSub = false" @blur="addingSub = false">
+    </form>
+    <ul class="tree-list" data-folder-list data-parent="{{ f.id }}">
+      {% for child in node.folders %}{{ folder_item(child) }}{% endfor %}
+    </ul>
+    <ul class="tree-list" data-note-list data-folder="{{ f.id }}">
+      {% for note in node.notes %}{{ note_item(note) }}{% endfor %}
+    </ul>
+  </div>
+</li>
+{%- endmacro %}

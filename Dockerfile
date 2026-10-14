@@ -1,15 +1,18 @@
 # syntax=docker/dockerfile:1
 
-# Build the stylesheet with the pinned Tailwind standalone CLI.
-FROM debian:trixie-slim AS css
+# Build the editor bundle and the stylesheet.
+FROM node:22-slim AS assets
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /src
+COPY frontend/package.json frontend/package-lock.json frontend/
+RUN cd frontend && npm ci --no-audit --no-fund
+COPY frontend frontend
 COPY scripts/tailwind.sh scripts/
 COPY schrift/static/css schrift/static/css
 COPY schrift/templates schrift/templates
-RUN scripts/tailwind.sh --minify
+RUN mkdir -p schrift/static/dist && cd frontend && npm run build && cd .. && scripts/tailwind.sh --minify
 
 FROM python:3.12-slim
 COPY --from=ghcr.io/astral-sh/uv:0.13.1 /uv /usr/local/bin/uv
@@ -23,7 +26,7 @@ WORKDIR /app
 COPY pyproject.toml uv.lock README.md ./
 RUN uv sync --frozen --no-dev --no-install-project
 COPY schrift schrift
-COPY --from=css /src/schrift/static/dist schrift/static/dist
+COPY --from=assets /src/schrift/static/dist schrift/static/dist
 RUN uv sync --frozen --no-dev
 
 RUN useradd --system --uid 1000 --home-dir /app schrift \

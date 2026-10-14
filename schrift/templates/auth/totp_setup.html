@@ -1,0 +1,19 @@
+{% extends "auth/layout.html" %}
+{% block title %}{{ t("Tweestapsverificatie") }} · Schrift{% endblock %}
+{% block card %}
+<h1 class="mb-2 text-lg font-semibold">{{ t("Tweestapsverificatie instellen") }}</h1>
+<p class="mb-5 text-sm leading-relaxed text-muted">{{ t("Scan de code met een authenticator-app (zoals 1Password, Bitwarden of Google Authenticator) en typ de code van zes cijfers die de app laat zien.") }}</p>
+<div class="mx-auto mb-4 w-fit rounded-lg bg-white p-3 text-black">{{ qr | safe }}</div>
+<details class="mb-5 text-sm">
+  <summary class="cursor-pointer text-muted">{{ t("Kun je niet scannen?") }}</summary>
+  <p class="mt-2">{{ t("Voer deze sleutel handmatig in:") }}</p>
+  <code class="mt-1 block break-all rounded-md bg-side p-2 font-mono text-[13px]">{{ secret }}</code>
+</details>
+{% if error %}<p class="form-error" role="alert">{{ error }}</p>{% endif %}
+<form method="post" action="/setup/2fa" class="flex flex-col gap-4">
+  <label class="field-label">{{ t("Code") }}
+    <input class="input text-lg tracking-widest" name="code" inputmode="numeric" autocomplete="one-time-code" required autofocus>
+  </label>
+  <button class="btn btn-primary w-full">{{ t("Inschakelen") }}</button>
+</form>
+{% endblock %}

@@ -1,0 +1,179 @@
+{% extends "layout.html" %}
+{% block title %}{{ t("Instellingen") }} · Schrift{% endblock %}
+
+{% macro secret_box(anchor, example=None) %}
+{% if flash and flash.kind == "secret" and flash.anchor == anchor %}
+<div class="secret-box" x-data="{ copied: false }">
+  <p class="font-medium">{{ flash.message }}</p>
+  <p class="text-[13px] text-muted">{{ t("Kopieer het nu, het wordt hierna niet meer getoond.") }}</p>
+  <code class="code-line">{{ flash.secret }}</code>
+  {% if example %}
+  <p class="mt-2 text-[13px] text-muted">{{ t("Voorbeeld voor Claude Code:") }}</p>
+  <code class="code-line">{{ example | replace("TOKEN", flash.secret) }}</code>
+  {% endif %}
+  <div><button type="button" class="btn btn-sm" @click="navigator.clipboard.writeText({{ flash.secret | tojson | forceescape }}); copied = true" x-text="copied ? {{ t('Gekopieerd') | tojson | forceescape }} : {{ t('Kopiëren') | tojson | forceescape }}"></button></div>
+</div>
+{% endif %}
+{% endmacro %}
+
+{% block main %}
+<header class="topbar md:hidden">
+  <button class="icon-btn" @click="drawer = true" aria-label="{{ t('Menu') }}">{{ icon("menu") }}</button>
+</header>
+<div class="flex justify-center px-4 pb-24 pt-8 sm:px-6 md:pt-10">
+  <div class="w-full max-w-[760px]">
+    <h1 class="page-title">{{ t("Instellingen") }}</h1>
+    <nav class="mb-2 flex flex-wrap gap-1.5" aria-label="{{ t('Secties') }}">
+      <a class="seg" href="#algemeen">{{ t("Algemeen") }}</a>
+      <a class="seg" href="#beveiliging">{{ t("Beveiliging") }}</a>
+      <a class="seg" href="#caldav">CalDAV</a>
+      <a class="seg" href="#mcp">{{ t("MCP-server") }}</a>
+      {% if user.is_admin %}<a class="seg" href="#gebruikers">{{ t("Gebruikers") }}</a>{% endif %}
+    </nav>
+
+    <section class="settings-section" id="algemeen">
+      <h2>{{ t("Algemeen") }}</h2>
+      <form method="post" action="/settings/general" class="flex flex-col">
+        <label class="field"><span>{{ t("Taal") }}</span>
+          <select class="input max-w-[240px]" name="language">{% for code, name in languages.items() %}<option value="{{ code }}" {% if user.language == code %}selected{% endif %}>{{ name }}</option>{% endfor %}</select>
+        </label>
+        <label class="field"><span>{{ t("Thema") }}</span>
+          <select class="input max-w-[240px]" name="theme">
+            <option value="system" {% if user.theme == "system" %}selected{% endif %}>{{ t("Volg systeem") }}</option>
+            <option value="light" {% if user.theme == "light" %}selected{% endif %}>{{ t("Licht") }}</option>
+            <option value="dark" {% if user.theme == "dark" %}selected{% endif %}>{{ t("Donker") }}</option>
+          </select>
+        </label>
+        <label class="field"><span>{{ t("Tijdzone") }}</span>
+          <select class="input max-w-[240px]" name="timezone">{% for tz in timezones %}<option {% if user.timezone == tz %}selected{% endif %}>{{ tz }}</option>{% endfor %}</select>
+        </label>
+        <div class="field"><span></span><div><button class="btn btn-primary">{{ t("Opslaan") }}</button></div></div>
+      </form>
+    </section>
+
+    <section class="settings-section" id="beveiliging">
+      <h2>{{ t("Beveiliging") }}</h2>
+      <details class="field-block">
+        <summary class="btn w-fit">{{ t("Wachtwoord wijzigen") }}</summary>
+        <form method="post" action="/settings/password" class="mt-3 flex max-w-[360px] flex-col gap-3">
+          <input type="text" name="username" value="{{ user.username }}" autocomplete="username" hidden>
+          <label class="field-label">{{ t("Huidig wachtwoord") }}<input class="input" type="password" name="current" autocomplete="current-password" required></label>
+          <label class="field-label">{{ t("Nieuw wachtwoord") }}<input class="input" type="password" name="password" autocomplete="new-password" minlength="10" required></label>
+          <label class="field-label">{{ t("Nog een keer") }}<input class="input" type="password" name="password2" autocomplete="new-password" minlength="10" required></label>
+          <button class="btn btn-primary w-fit">{{ t("Wachtwoord opslaan") }}</button>
+        </form>
+      </details>
+      <div class="field"><span>{{ t("Tweestapsverificatie") }}</span><span class="badge-ok">{{ icon("check", 14) }}{{ t("Aan") }}</span></div>
+      <details class="field-block">
+        <summary class="btn btn-quiet w-fit">{{ t("Nieuwe herstelcodes maken") }}</summary>
+        <form method="post" action="/settings/recovery-codes" class="mt-3 flex max-w-[360px] flex-col gap-3">
+          <p class="text-[14px] text-muted">{{ t("Je oude herstelcodes werken daarna niet meer. Bevestig met een code uit je app.") }}</p>
+          <label class="field-label">{{ t("Code") }}<input class="input" name="code" inputmode="numeric" autocomplete="one-time-code" required></label>
+          <button class="btn w-fit">{{ t("Codes maken") }}</button>
+        </form>
+      </details>
+    </section>
+
+    <section class="settings-section" id="caldav">
+      <h2>CalDAV</h2>
+      <p class="lead">{{ t("Synchroniseer je taken met elke app die CalDAV ondersteunt, zoals Apple Herinneringen, Thunderbird of DAVx⁵. Gebruik per apparaat een eigen app-wachtwoord. Taken verschijnen in de lijst Schrift.") }}</p>
+      <div class="field"><span>{{ t("Server-URL") }}</span><code class="code-line">{{ base_url }}/caldav/</code></div>
+      <div class="field"><span>{{ t("Gebruikersnaam") }}</span><code class="code-line">{{ user.username }}</code></div>
+      <details class="field-block">
+        <summary class="cursor-pointer text-[14px] text-accent">{{ t("Zo stel je het in op een iPhone of iPad") }}</summary>
+        <ol class="mt-2 list-decimal space-y-1 pl-5 text-[14px] leading-relaxed">
+          <li>{{ t("Maak hieronder een app-wachtwoord.") }}</li>
+          <li>{{ t("Open Instellingen › Apps › Herinneringen › Herinneringen-accounts › Voeg account toe › Andere › Voeg CalDAV-account toe.") }}</li>
+          <li>{{ t("Vul bij Server alleen de domeinnaam in, en je gebruikersnaam en het app-wachtwoord.") }}</li>
+        </ol>
+      </details>
+      <div class="field items-start"><span class="pt-2">{{ t("App-wachtwoorden") }}</span>
+        <div class="min-w-0">
+          {{ secret_box("caldav") }}
+          {% if app_passwords %}
+          <ul class="list mb-3">
+            {% for p in app_passwords %}
+            <li class="list-item"><span class="font-medium">{{ p.name }}</span>
+              <span class="text-[13px] text-muted">{% if p.last_used_at %}{{ t("laatst gebruikt") }} {{ p.last_used_at | ago(lang) }}{% else %}{{ t("nog niet gebruikt") }}{% endif %}</span>
+              <form method="post" action="/settings/app-passwords/{{ p.id }}/delete" class="ml-auto"><button class="btn btn-sm btn-quiet">{{ t("Intrekken") }}</button></form>
+            </li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+          <form method="post" action="/settings/app-passwords" class="flex flex-wrap gap-2">
+            <input class="input min-w-0 flex-[1_1_200px]" name="name" placeholder="{{ t('Naam van het apparaat') }}" aria-label="{{ t('Naam van het apparaat') }}" required>
+            <button class="btn btn-primary">{{ t("App-wachtwoord maken") }}</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section class="settings-section" id="mcp">
+      <h2>{{ t("MCP-server") }}</h2>
+      <p class="lead">{{ t("Geef een AI-assistent toegang tot je notities en taken. Clients met inloggen (OAuth), zoals claude.ai, koppel je via de server-URL. Andere clients, zoals Claude Code, gebruiken een token in de Authorization-header.") }}</p>
+      <div class="field"><span>{{ t("Server-URL") }}</span><code class="code-line">{{ base_url }}/mcp</code></div>
+      <div class="field items-start"><span class="pt-2">{{ t("Tokens") }}</span>
+        <div class="min-w-0">
+          {{ secret_box("mcp", "claude mcp add --transport http schrift " ~ base_url ~ "/mcp --header \"Authorization: Bearer TOKEN\"") }}
+          {% if api_tokens %}
+          <ul class="list mb-3">
+            {% for tok in api_tokens %}
+            <li class="list-item"><span class="font-medium">{{ tok.name }}</span>
+              <span class="text-[13px] text-muted">{% if tok.last_used_at %}{{ t("laatst gebruikt") }} {{ tok.last_used_at | ago(lang) }}{% else %}{{ t("nog niet gebruikt") }}{% endif %}</span>
+              <form method="post" action="/settings/tokens/{{ tok.id }}/delete" class="ml-auto"><button class="btn btn-sm btn-quiet">{{ t("Intrekken") }}</button></form>
+            </li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+          <form method="post" action="/settings/tokens" class="flex flex-wrap gap-2">
+            <input class="input min-w-0 flex-[1_1_200px]" name="name" placeholder="{{ t('Naam van het token') }}" aria-label="{{ t('Naam van het token') }}" required>
+            <button class="btn btn-primary">{{ t("Token maken") }}</button>
+          </form>
+        </div>
+      </div>
+      <div class="field items-start"><span class="pt-2">{{ t("Gekoppelde clients") }}</span>
+        <div>
+          {% for c in oauth_clients %}
+          <div class="list-item px-0"><span class="font-medium">{{ c.name }}</span>
+            {% if c.last_used %}<span class="text-[13px] text-muted">{{ t("laatst gebruikt") }} {{ c.last_used | ago(lang) }}</span>{% endif %}
+            <form method="post" action="/settings/clients/{{ c.id }}/delete" class="ml-auto"><button class="btn btn-sm btn-quiet">{{ t("Ontkoppelen") }}</button></form>
+          </div>
+          {% else %}<p class="pt-2 text-[14px] text-muted">{{ t("Nog geen.") }}</p>{% endfor %}
+        </div>
+      </div>
+    </section>
+
+    {% if user.is_admin %}
+    <section class="settings-section" id="gebruikers">
+      <h2>{{ t("Gebruikers") }}</h2>
+      <p class="lead">{{ t("Iedere gebruiker heeft eigen notities en taken. Nieuwe gebruikers kiezen bij de eerste keer inloggen een eigen wachtwoord en stellen tweestapsverificatie in.") }}</p>
+      {{ secret_box("gebruikers") }}
+      <ul class="list mb-3">
+        {% for u in users %}
+        <li class="list-item" x-data="{ sure: false }">
+          <span class="font-medium">{{ u.username }}</span>
+          <span class="text-[13px] text-muted">{% if u.is_admin %}{{ t("beheerder") }}{% elif u.must_change_password %}{{ t("moet nog inloggen") }}{% elif not u.totp_enabled %}{{ t("2FA nog niet ingesteld") }}{% endif %}</span>
+          {% if u.id != user.id %}
+          <form method="post" action="/settings/users/{{ u.id }}/reset" class="ml-auto"><button class="btn btn-sm btn-quiet">{{ t("Wachtwoord resetten") }}</button></form>
+          <form method="post" action="/settings/users/{{ u.id }}/delete">
+            <button type="button" class="btn btn-sm btn-quiet" x-show="!sure" @click="sure = true">{{ t("Verwijderen") }}</button>
+            <button class="btn btn-sm btn-danger" x-show="sure" x-cloak>{{ t("Gebruiker en notities verwijderen") }}</button>
+          </form>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      <form method="post" action="/settings/users" class="flex flex-wrap gap-2">
+        <input class="input min-w-0 flex-[1_1_200px]" name="username" placeholder="{{ t('Gebruikersnaam') }}" aria-label="{{ t('Gebruikersnaam') }}" autocapitalize="none" required>
+        <button class="btn btn-primary">{{ t("Gebruiker toevoegen") }}</button>
+      </form>
+    </section>
+    {% endif %}
+
+    <section class="settings-section">
+      <form method="post" action="/logout"><button class="btn">{{ icon("logout", 16) }}{{ t("Uitloggen") }}</button></form>
+      <p class="mt-4 text-[13px] text-muted">Schrift {{ version }}</p>
+    </section>
+  </div>
+</div>
+{% endblock %}

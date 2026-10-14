@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+{% block title %}{{ t("Prullenbak") }} · Schrift{% endblock %}
+{% block main %}
+<header class="topbar md:hidden">
+  <button class="icon-btn" @click="drawer = true" aria-label="{{ t('Menu') }}">{{ icon("menu") }}</button>
+</header>
+<div class="flex justify-center px-4 pb-24 pt-8 sm:px-6 md:pt-10">
+  <div class="w-full max-w-[760px]">
+    <div class="flex items-center gap-3">
+      <h1 class="page-title">{{ t("Prullenbak") }}</h1>
+      {% if notes %}
+      <form method="post" action="/trash/empty" class="ml-auto" x-data="{ sure: false }">
+        <button type="button" class="btn btn-sm" x-show="!sure" @click="sure = true">{{ t("Prullenbak legen") }}</button>
+        <button class="btn btn-sm btn-danger" x-show="sure" x-cloak>{{ t("Alles definitief verwijderen") }}</button>
+      </form>
+      {% endif %}
+    </div>
+    <ul class="list">
+      {% for note in notes %}
+      <li class="list-item">
+        <div class="min-w-0">
+          <span class="block truncate font-medium">{{ note.title }}</span>
+          <span class="text-[13px] text-muted">{{ note.path[:-3] }}</span>
+        </div>
+        <form method="post" action="/trash/{{ note.id }}/restore" class="ml-auto"><button class="btn btn-sm">{{ t("Terugzetten") }}</button></form>
+        <form method="post" action="/trash/{{ note.id }}/purge" x-data="{ sure: false }">
+          <button type="button" class="btn btn-sm btn-quiet" x-show="!sure" @click="sure = true">{{ t("Verwijderen") }}</button>
+          <button class="btn btn-sm btn-danger" x-show="sure" x-cloak>{{ t("Definitief") }}</button>
+        </form>
+      </li>
+      {% else %}
+      <li class="empty"><p class="text-muted">{{ t("De prullenbak is leeg.") }}</p></li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}

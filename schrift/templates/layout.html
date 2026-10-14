@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% from "partials/icons.html" import icon %}
+{% from "partials/tree.html" import folder_item, note_item with context %}
+
+{% block body %}
+<div class="app-shell" x-data="shell" @keydown.window="hotkeys($event)">
+
+  <nav id="sidebar" class="sidebar" :class="drawer && 'is-open'" aria-label="{{ t('Navigatie') }}">
+    <div class="flex items-center justify-between px-2.5 pb-3 pt-1">
+      <a href="/" class="font-serif text-[22px] font-semibold tracking-tight text-text no-underline">Schrift</a>
+      <div class="flex items-center">
+        <button class="icon-btn" @click="newNote(null)" aria-label="{{ t('Nieuwe notitie') }}" title="{{ t('Nieuwe notitie') }}">{{ icon("plus") }}</button>
+        <button class="icon-btn md:hidden" @click="drawer = false" aria-label="{{ t('Menu sluiten') }}">{{ icon("close") }}</button>
+      </div>
+    </div>
+
+    <div class="relative mb-2.5" x-data="quickSearch" @click.outside="open = false">
+      <form action="/search" method="get" role="search">
+        <label class="search-box">
+          {{ icon("search", 16) }}
+          <input id="quick-search" type="search" name="q" placeholder="{{ t('Zoeken') }}" aria-label="{{ t('Zoeken in notities') }}"
+                 autocomplete="off" x-model="q" @input.debounce.200ms="run()" @focus="open = results.length > 0"
+                 @keydown.down.prevent="move(1)" @keydown.up.prevent="move(-1)" @keydown.enter="go($event)" @keydown.escape="open = false; $el.blur()">
+          <kbd class="kbd hidden md:inline">Ctrl K</kbd>
+        </label>
+      </form>
+      <div class="menu left-0 right-0 top-[42px] max-h-[60vh] overflow-y-auto" x-show="open" x-cloak>
+        <template x-for="(r, i) in results" :key="r.id">
+          <a :href="'/n/' + r.id" class="search-hit" :class="i === active && 'is-active'">
+            <span class="block truncate text-[14px] font-medium" x-text="r.title"></span>
+            <span class="block truncate text-[12px] text-muted" x-html="r.snippet || r.path"></span>
+          </a>
+        </template>
+        <p class="px-3 py-2 text-[13px] text-muted" x-show="q && !results.length && !loading">{{ t("Niets gevonden.") }}</p>
+      </div>
+    </div>
+
+    <a class="nav {% if active == 'tasks' %}is-active{% endif %}" href="/tasks" {% if active == 'tasks' %}aria-current="page"{% endif %}>
+      {{ icon("tasks") }}{{ t("Taken") }}<span class="count">{{ open_task_count or "" }}</span>
+    </a>
+    <a class="nav {% if current_note and current_note.is_inbox %}is-active{% endif %}" href="/n/{{ inbox.id }}" {% if current_note and current_note.is_inbox %}aria-current="page"{% endif %}>
+      {{ icon("inbox") }}{{ t("Inbox") }}
+    </a>
+
+    <div class="group-label">
+      <span>{{ t("Mappen") }}</span>
+      <button class="icon-btn icon-btn-sm" @click="addingRootFolder = true; $nextTick(() => $refs.rootFolder.focus())" aria-label="{{ t('Nieuwe map') }}" title="{{ t('Nieuwe map') }}">{{ icon("plus", 15) }}</button>
+    </div>
+    <form x-show="addingRootFolder" x-cloak class="px-1 pb-1" @submit.prevent="createFolder(null, $refs.rootFolder.value); addingRootFolder = false; $refs.rootFolder.value = ''">
+      <input x-ref="rootFolder" class="input input-sm" placeholder="{{ t('Naam van de map') }}" @keydown.escape="addingRootFolder = false" @blur="addingRootFolder = false">
+    </form>
+
+    <div class="tree flex-1 overflow-y-auto">
+      <ul class="tree-list" data-folder-list data-parent="">
+        {% for node in tree %}{{ folder_item(node) }}{% endfor %}
+      </ul>
+      <ul class="tree-list" data-note-list data-folder="">
+        {% for note in root_notes %}{{ note_item(note) }}{% endfor %}
+      </ul>
+      {% if not tree and not root_notes %}
+      <p class="px-2.5 py-2 text-[13px] text-muted">{{ t("Nog geen mappen. Maak er een met de plus.") }}</p>
+      {% endif %}
+
+      {% if all_tags %}
+      <div class="group-label"><span>{{ t("Tags") }}</span></div>
+      <div class="flex flex-wrap gap-1.5 px-2.5 pb-2">
+        {% for tag in all_tags %}<a class="chip" href="/search?q={{ tag | urlencode }}">{{ tag }}</a>{% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="mt-auto flex items-center gap-1 border-t border-line pt-3">
+      <span class="avatar" aria-hidden="true">{{ user.username[:1] | upper }}</span>
+      <span class="ml-1.5 truncate text-[14px]">{{ user.username }}</span>
+      <a class="icon-btn ml-auto" href="/trash" aria-label="{{ t('Prullenbak') }}" title="{{ t('Prullenbak') }}">{{ icon("trash") }}</a>
+      <button class="icon-btn" @click="toggleTheme()" aria-label="{{ t('Licht of donker thema') }}" title="{{ t('Licht of donker thema') }}">{{ icon("moon") }}</button>
+      <a class="icon-btn" href="/settings" aria-label="{{ t('Instellingen') }}" title="{{ t('Instellingen') }}">{{ icon("settings") }}</a>
+    </div>
+  </nav>
+
+  <div class="backdrop md:hidden" x-show="drawer" x-transition.opacity @click="drawer = false" x-cloak></div>
+
+  <main class="app-main" id="main">
+    {% block main %}{% endblock %}
+  </main>
+
+  <nav class="tabbar md:hidden" aria-label="{{ t('Hoofdmenu') }}">
+    <button class="tab" @click="drawer = true">{{ icon("note", 22) }}<span>{{ t("Notities") }}</span></button>
+    <a class="tab {% if active == 'tasks' %}is-active{% endif %}" href="/tasks">{{ icon("tasks", 22) }}<span>{{ t("Taken") }}</span></a>
+    <a class="tab {% if active == 'search' %}is-active{% endif %}" href="/search">{{ icon("search", 22) }}<span>{{ t("Zoeken") }}</span></a>
+    <button class="tab" @click="newNote(currentFolder)">{{ icon("plus", 22) }}<span>{{ t("Nieuw") }}</span></button>
+  </nav>
+
+  {% if flash and flash.kind != 'secret' %}
+  <div class="toast {% if flash.kind == 'error' %}toast-error{% endif %}" role="status" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 6000)">
+    <span>{{ flash.message }}</span>
+    {% if flash.undo %}
+    <button class="toast-action" @click="undo({{ flash.undo | tojson | forceescape }})">{{ t("Ongedaan maken") }}</button>
+    {% endif %}
+    <button class="icon-btn icon-btn-sm" @click="show = false" aria-label="{{ t('Sluiten') }}">{{ icon("close", 14) }}</button>
+  </div>
+  {% endif %}
+  <div class="toast" role="status" x-show="toast" x-cloak x-transition>
+    <span x-text="toast && toast.message"></span>
+    <template x-if="toast && toast.action">
+      <button class="toast-action" @click="toast.action.run(); toast = null" x-text="toast.action.label"></button>
+    </template>
+  </div>
+</div>
+<script>
+  window.SCHRIFT = {
+    lang: {{ lang | tojson }},
+    theme: {{ theme | tojson }},
+    currentFolder: {{ (current_note.folder_id if current_note and current_note.folder_id else none) | tojson }},
+    strings: {{ {
+      "Opslaan…": t("Opslaan…"), "Opgeslagen": t("Opgeslagen"), "Niet opgeslagen": t("Niet opgeslagen"),
+      "Naar prullenbak verplaatst": t("Naar prullenbak verplaatst"), "Ongedaan maken": t("Ongedaan maken"),
+      "Er ging iets mis.": t("Er ging iets mis."), "Map verwijderen?": t("Map verwijderen?"),
+      "Typ / voor opmaak": t("Typ / voor opmaak"), "Gewijzigd door": t("Gewijzigd door"),
+      "Bijgewerkt door Claude": t("Bijgewerkt door Claude"), "Datum wissen": t("Datum wissen"),
+      "Tijd": t("Tijd"), "Vandaag": t("Vandaag"), "Morgen": t("Morgen"), "Volgende week": t("Volgende week"),
+      "Kop 1": t("Kop 1"), "Kop 2": t("Kop 2"), "Kop 3": t("Kop 3"), "Takenlijst": t("Takenlijst"),
+      "Opsomming": t("Opsomming"), "Genummerde lijst": t("Genummerde lijst"), "Citaat": t("Citaat"),
+      "Code": t("Code"), "Uitklapblok": t("Uitklapblok"), "Tabel": t("Tabel"), "Scheidingslijn": t("Scheidingslijn"),
+      "Datum": t("Datum"), "Link naar notitie": t("Link naar notitie"), "Bestand of afbeelding": t("Bestand of afbeelding"),
+      "Nieuwe notitie": t("Nieuwe notitie"), "Uploaden…": t("Uploaden…"), "Geen notities gevonden": t("Geen notities gevonden"),
+      "Samenvatting": t("Samenvatting"), "Details": t("Details"),
+    } | tojson }},
+  }
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ asset('dist/app.js') }}" defer></script>
+{% endblock %}

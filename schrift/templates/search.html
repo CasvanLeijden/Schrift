@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% set active = "search" %}
+{% block title %}{{ t("Zoeken") }} · Schrift{% endblock %}
+{% block main %}
+<header class="topbar md:hidden">
+  <button class="icon-btn" @click="drawer = true" aria-label="{{ t('Menu') }}">{{ icon("menu") }}</button>
+</header>
+<div class="flex justify-center px-4 pb-24 pt-8 sm:px-6 md:pt-10">
+  <div class="w-full max-w-[760px]">
+    <h1 class="page-title">{{ t("Zoeken") }}</h1>
+    <form action="/search" method="get" role="search" class="mb-6">
+      <label class="search-box h-12 text-[16px]">
+        {{ icon("search", 18) }}
+        <input type="search" name="q" value="{{ q }}" placeholder="{{ t('Zoek in titels, tekst, tags en bijlagen') }}" aria-label="{{ t('Zoeken') }}" autofocus>
+      </label>
+    </form>
+    {% if q %}
+      {% for r in results %}
+      <a class="result" href="/n/{{ r.note.id }}">
+        <span class="block font-serif text-[18px] font-semibold">{{ r.note.title }}</span>
+        <span class="block text-[13px] text-muted">{{ r.note.path[:-3] }}{% if r.via == "meaning" %} · {{ t("vergelijkbaar") }}{% endif %}</span>
+        {% if r.snippet %}<span class="mt-1 block text-[14px] leading-relaxed">{{ r.snippet | safe }}</span>{% endif %}
+      </a>
+      {% else %}
+      <p class="text-muted">{{ t("Niets gevonden voor '{q}'.", q=q) }}</p>
+      {% endfor %}
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

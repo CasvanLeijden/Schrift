@@ -1,12 +1,21 @@
 <!doctype html>
-<html lang="nl">
+<html lang="{{ lang }}"{% if theme in ("light", "dark") %} data-theme="{{ theme }}"{% endif %}>
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>{% block title %}Schrift{% endblock %}</title>
-  <link rel="stylesheet" href="{{ url_for('static', path='dist/app.css') }}">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#16191f" media="(prefers-color-scheme: dark)">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="{{ asset('icons/icon.svg') }}" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="{{ asset('icons/icon-180.png') }}">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Schrift">
+  <link rel="stylesheet" href="{{ asset('dist/app.css') }}">
+  {% block head %}{% endblock %}
 </head>
 <body class="min-h-dvh">
   {% block body %}{% endblock %}
+  {% block scripts %}{% endblock %}
 </body>
 </html>

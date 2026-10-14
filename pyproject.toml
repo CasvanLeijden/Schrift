@@ -10,7 +10,24 @@ dependencies = [
     "jinja2>=3.1",
     "pydantic-settings>=2.6",
     "python-multipart>=0.0.18",
+    "sqlalchemy>=2.0",
+    "alembic>=1.14",
+    "pyyaml>=6.0",
+    "argon2-cffi>=23.1",
+    "pyotp>=2.9",
+    "segno>=1.6",
+    "itsdangerous>=2.2",
+    "icalendar>=6.0",
+    "pypdf>=5.0",
+    "numpy>=2.0",
+    "mcp>=1.20",
 ]
+
+[project.optional-dependencies]
+semantic = ["fastembed>=0.5"]
+
+[project.scripts]
+schrift = "schrift.cli:main"
 
 [dependency-groups]
 dev = [
@@ -18,6 +35,10 @@ dev = [
     "httpx2>=2.13",
     "ruff>=0.8",
 ]
+
+[tool.uv]
+# Only resolve releases that are at least two weeks old.
+exclude-newer = "2026-09-30T00:00:00Z"
 
 [build-system]
 requires = ["hatchling"]
@@ -35,3 +56,9 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = [
+    "fastapi.Depends", "fastapi.Form", "fastapi.Query", "fastapi.File",
+    "fastapi.Body", "fastapi.Header", "fastapi.UploadFile",
+]

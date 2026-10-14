@@ -13,6 +13,14 @@ class Settings(BaseSettings):
     base_url: str = "http://localhost:8000"
     secret_key: str = "change-me"
     debug: bool = False
+    semantic_search: bool = True
+    embedding_model: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    max_upload_mb: int = 25
+    trusted_origins: list[str] = []
+
+    @property
+    def db_url(self) -> str:
+        return f"sqlite:///{self.data_dir / 'schrift.db'}"
 
 
 @lru_cache

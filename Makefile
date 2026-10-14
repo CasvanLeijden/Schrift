@@ -1,7 +1,9 @@
-.PHONY: setup dev css css-watch test lint format
+.PHONY: setup dev css css-watch js js-watch test lint format
 
 setup:
-	uv sync
+	uv sync --all-extras
+	cd frontend && npm install
+	cd frontend && npm run build
 	scripts/tailwind.sh
 
 dev:
@@ -15,6 +17,13 @@ css-watch:
 
 test:
 	uv run pytest
+	cd frontend && npm test
+
+js:
+	cd frontend && npm run build
+
+js-watch:
+	cd frontend && npm run watch
 
 lint:
 	uv run ruff check .

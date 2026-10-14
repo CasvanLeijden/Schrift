@@ -1,0 +1,8 @@
+{% extends "layout.html" %}
+{% block title %}{{ t("Niet gevonden") }} · Schrift{% endblock %}
+{% block main %}
+<div class="empty mt-24">
+  <p class="font-serif text-[22px]">{{ t("Deze notitie bestaat niet (meer).") }}</p>
+  <p class="mt-2"><a href="/trash">{{ t("Kijk in de prullenbak") }}</a> · <a href="/">{{ t("Naar start") }}</a></p>
+</div>
+{% endblock %}

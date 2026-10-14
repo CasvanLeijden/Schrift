@@ -1,0 +1,137 @@
+{% extends "layout.html" %}
+{% block title %}{{ note.title }} · Schrift{% endblock %}
+{% block main %}
+<div class="flex min-h-full flex-col" x-data="noteEditor">
+  <header class="topbar">
+    <button class="icon-btn md:hidden" @click="drawer = true" aria-label="{{ t('Menu') }}">{{ icon("menu") }}</button>
+    <span class="min-w-0 truncate text-muted">
+      {% if note.is_inbox %}{{ t("Inbox") }}{% else %}
+      {% for c in crumbs %}{{ c.name }}{% if not loop.last %} <span aria-hidden="true">/</span> {% endif %}{% endfor %}
+      {% endif %}
+    </span>
+    <span class="ml-auto hidden items-center gap-1.5 text-muted sm:inline-flex" aria-live="polite">
+      <span x-show="status === 'saved'">{{ icon("check", 14) }}</span>
+      <span x-text="statusText"></span>
+    </span>
+    <button class="topbar-btn" @click="openVersions()" title="{{ t('Versies') }}">
+      {{ icon("history", 16) }}<span class="hidden lg:inline" x-text="changedLabel"></span>
+    </button>
+    <div class="relative" @click.outside="menu = false">
+      <button class="icon-btn" @click="menu = !menu" :aria-expanded="menu.toString()" aria-label="{{ t('Meer acties') }}">{{ icon("more") }}</button>
+      <div class="menu right-0 top-10 w-64" x-show="menu" x-cloak>
+        <button class="menu-item" @click="menu = false; openVersions()">{{ t("Versies bekijken") }}</button>
+        <a class="menu-item" :href="'data:text/markdown;charset=utf-8,' + encodeURIComponent(markdownForDownload())" download="{{ note.title }}.md" @click="menu = false">{{ t("Markdown downloaden") }}</a>
+        {% if not note.is_inbox %}
+        <label class="block px-3 pb-1 pt-2 text-[12px] font-medium text-muted" for="move-to">{{ t("Verplaatsen naar") }}</label>
+        <div class="px-3 pb-2">
+          <select id="move-to" class="input input-sm" @change="moveTo($event.target.value)">
+            <option value="" disabled selected>{{ t("Kies een map") }}</option>
+            <option value="root">{{ t("(geen map)") }}</option>
+            {% for opt in folder_options %}<option value="{{ opt.id }}" {% if opt.id == note.folder_id %}disabled{% endif %}>{{ opt.path }}</option>{% endfor %}
+          </select>
+        </div>
+        <button class="menu-item text-late" @click="menu = false; trash()">{{ t("Naar prullenbak") }}</button>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+
+  <div class="conflict-bar" x-show="conflict" x-cloak role="alert">
+    <span>{{ t("Deze notitie is intussen elders gewijzigd.") }}</span>
+    <button class="btn btn-sm" @click="loadTheirs()">{{ t("Hun versie laden") }}</button>
+    <button class="btn btn-sm btn-primary" @click="keepMine()">{{ t("Mijn versie bewaren") }}</button>
+  </div>
+
+  <div class="flex flex-1">
+    <div class="flex flex-1 justify-center px-4 pb-24 pt-8 sm:px-6 md:pt-12">
+      <article class="paper">
+        <div class="margin-line" aria-hidden="true"></div>
+        {% if note.is_inbox %}
+        <h1 class="note-title">{{ t("Inbox") }}</h1>
+        <p class="mb-6 text-[14px] text-muted">{{ t("Losse taken en snelle notities. Taken die je in je herinneringen-app aanmaakt, komen hier.") }}</p>
+        {% else %}
+        <textarea class="note-title" rows="1" x-ref="title" x-model="title" @input="autosize($el); scheduleSave()" @keydown.enter.prevent="focusEditor()"
+                  aria-label="{{ t('Titel') }}" placeholder="{{ t('Titel') }}" spellcheck="true"></textarea>
+        <div class="mb-6 flex flex-wrap items-center gap-1.5">
+          <template x-for="tag in tags" :key="tag">
+            <span class="chip">
+              <span x-text="tag"></span>
+              <button class="-mr-1 ml-0.5 rounded text-muted hover:text-text" @click="removeTag(tag)" :aria-label="'{{ t('Tag verwijderen') }}: ' + tag">{{ icon("close", 12) }}</button>
+            </span>
+          </template>
+          <form @submit.prevent="addTag()" class="contents">
+            <input class="chip chip-input" x-model="newTag" placeholder="{{ t('Tag toevoegen') }}" aria-label="{{ t('Tag toevoegen') }}" list="tag-options" size="12">
+          </form>
+          <datalist id="tag-options">{% for tag in all_tags %}<option value="{{ tag }}">{% endfor %}</datalist>
+        </div>
+        {% endif %}
+
+        <div id="editor" class="prose-note" x-ref="editor"></div>
+
+        {% if backlinks or attachments %}
+        <section class="note-footer" aria-label="{{ t('Verwijzingen en bijlagen') }}">
+          {% if backlinks %}
+          <div>
+            <h2 class="footer-label">{{ t("Gelinkt vanuit") }}</h2>
+            {% for b in backlinks %}<a class="nav pl-0" href="/n/{{ b.id }}">{{ icon("link", 15) }}<span class="truncate">{{ b.title }}</span></a>{% endfor %}
+          </div>
+          {% endif %}
+          {% if attachments %}
+          <div>
+            <h2 class="footer-label">{{ t("Bijlagen") }}</h2>
+            {% for a in attachments %}
+            <a class="nav pl-0" href="{{ attachment_url(a) }}" target="_blank" rel="noopener">{{ icon("file", 15) }}<span class="truncate">{{ a.filename }}</span><span class="count">{{ (a.size / 1024) | round | int }} kB</span></a>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </section>
+        {% endif %}
+      </article>
+    </div>
+
+    <aside class="versions-panel" x-show="versionsOpen" x-cloak x-transition.opacity aria-label="{{ t('Versies') }}">
+      <div class="flex items-center justify-between border-b border-line px-4 py-3">
+        <h2 class="text-[15px] font-semibold">{{ t("Versies") }}</h2>
+        <button class="icon-btn" @click="versionsOpen = false; preview = null" aria-label="{{ t('Sluiten') }}">{{ icon("close") }}</button>
+      </div>
+      <div class="flex-1 overflow-y-auto p-2" x-show="!preview">
+        <template x-for="v in versions" :key="v.id">
+          <button class="version-row" @click="showVersion(v)">
+            <span class="font-medium" x-text="sourceLabel(v.source)"></span>
+            <span class="text-muted" x-text="formatTime(v.updatedAt)"></span>
+          </button>
+        </template>
+      </div>
+      <div class="flex flex-1 flex-col overflow-hidden" x-show="preview">
+        <div class="flex items-center gap-2 border-b border-line px-4 py-2">
+          <button class="btn btn-sm" @click="preview = null">{{ t("Terug") }}</button>
+          <button class="btn btn-sm btn-primary ml-auto" @click="restoreVersion()">{{ t("Deze versie terugzetten") }}</button>
+        </div>
+        <pre class="flex-1 overflow-auto whitespace-pre-wrap p-4 font-serif text-[14px] leading-relaxed" x-text="preview && preview.content"></pre>
+      </div>
+    </aside>
+  </div>
+  <input type="file" x-ref="file" class="hidden" multiple @change="uploadFiles([...$event.target.files]); $event.target.value = ''">
+  <div class="due-popover menu" x-show="due.open" x-cloak :style="due.style" @click.outside="due.open = false" @keydown.escape="due.open = false">
+    <div class="flex flex-col gap-2 p-3">
+      <input type="date" class="input input-sm" x-model="due.date" aria-label="{{ t('Datum') }}">
+      <input type="time" class="input input-sm" x-model="due.time" aria-label="{{ t('Tijd') }}">
+      <div class="flex flex-wrap gap-1.5">
+        <button class="chip" @click="quickDue(0)">{{ t("Vandaag") }}</button>
+        <button class="chip" @click="quickDue(1)">{{ t("Morgen") }}</button>
+        <button class="chip" @click="quickDue(7)">{{ t("Volgende week") }}</button>
+      </div>
+      <div class="flex gap-2">
+        <button class="btn btn-sm" @click="clearDue()">{{ t("Datum wissen") }}</button>
+        <button class="btn btn-sm btn-primary ml-auto" @click="applyDue()">{{ t("Klaar") }}</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="application/json" id="note-data">{{ payload | tojson }}</script>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ asset('dist/editor.js') }}" defer></script>
+{% endblock %}
