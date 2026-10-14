@@ -62,3 +62,7 @@ extend-immutable-calls = [
     "fastapi.Depends", "fastapi.Form", "fastapi.Query", "fastapi.File",
     "fastapi.Body", "fastapi.Header", "fastapi.UploadFile",
 ]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests contain raw CalDAV XML and iCalendar payloads.
+"tests/*" = ["E501"]

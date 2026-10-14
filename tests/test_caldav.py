@@ -18,7 +18,8 @@ def dav(client):
         user = User(username="cas", password_hash=security.hash_password("x" * 12))
         s.add(user)
         s.flush()
-        s.add(AppPassword(user_id=user.id, name="iPhone", token_hash=security.token_hash("app-pw")))
+        token = security.token_hash("app-pw")
+        s.add(AppPassword(user_id=user.id, name="iPhone", token_hash=token))
         zoka = ctx.vault(s, user).create_folder("ZOKA")
         ctx.vault(s, user).create_note(
             "Overleg",
