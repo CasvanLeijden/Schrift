@@ -4,14 +4,18 @@ import { test } from 'node:test'
 import { JSDOM } from 'jsdom'
 
 const dom = new JSDOM('<!doctype html><div id="e"></div>')
-Object.assign(globalThis, {
+const globals = {
   window: dom.window,
   document: dom.window.document,
   navigator: dom.window.navigator,
   HTMLElement: dom.window.HTMLElement,
   Node: dom.window.Node,
   getComputedStyle: dom.window.getComputedStyle,
-})
+}
+for (const [key, value] of Object.entries(globals)) {
+  // Newer Node versions define some of these (navigator) as read-only getters.
+  Object.defineProperty(globalThis, key, { value, configurable: true, writable: true })
+}
 const { createEditor, getMarkdown } = await import('../src/editor/setup.js')
 
 function roundtrip(src) {
