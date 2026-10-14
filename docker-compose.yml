@@ -1,0 +1,12 @@
+# Example deployment. Put Schrift behind a reverse proxy that terminates HTTPS.
+services:
+  schrift:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      SCHRIFT_BASE_URL: https://schrift.example.com
+      SCHRIFT_SECRET_KEY: ${SCHRIFT_SECRET_KEY:?set SCHRIFT_SECRET_KEY}
+    volumes:
+      - ./data:/data

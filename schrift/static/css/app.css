@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+@source "../../templates";
+
+/* Design tokens: see docs/PLAN.md, "Ontwerp". Light is the default, dark follows the
+   system unless the user picked a theme (data-theme on <html>). */
+:root {
+  --bg: #ffffff;
+  --side: #f4f6f9;
+  --line: #e2e6ec;
+  --text: #19202b;
+  --muted: #5a6473;
+  --icon: #7b8492;
+  --accent: #2443b0;
+  --accent-soft: #e8ecfa;
+  --margin: #e0605a;
+  --late: #b3261e;
+  --late-soft: #fbeae8;
+  --pill: #eef1f6;
+  --hover: #e9edf2;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #16191f;
+    --side: #1c2028;
+    --line: #2c323c;
+    --text: #e5e8ee;
+    --muted: #a2abb8;
+    --icon: #8b94a2;
+    --accent: #9db1ff;
+    --accent-soft: #252d48;
+    --margin: #a9504b;
+    --late: #ff9b92;
+    --late-soft: #3a2224;
+    --pill: #262b35;
+    --hover: #252a33;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #16191f;
+  --side: #1c2028;
+  --line: #2c323c;
+  --text: #e5e8ee;
+  --muted: #a2abb8;
+  --icon: #8b94a2;
+  --accent: #9db1ff;
+  --accent-soft: #252d48;
+  --margin: #a9504b;
+  --late: #ff9b92;
+  --late-soft: #3a2224;
+  --pill: #262b35;
+  --hover: #252a33;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-side: var(--side);
+  --color-line: var(--line);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-icon: var(--icon);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-margin: var(--margin);
+  --color-late: var(--late);
+  --color-late-soft: var(--late-soft);
+  --color-pill: var(--pill);
+  --color-hover: var(--hover);
+}
+
+@theme {
+  --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Literata", Georgia, ui-serif, serif;
+}
+
+@layer base {
+  body {
+    @apply bg-bg font-sans text-text antialiased;
+  }
+  :focus-visible {
+    @apply rounded-md outline-2 outline-offset-2 outline-accent;
+  }
+}

@@ -17,3 +17,23 @@ Self-hosted notities, wiki en taken in Markdown. Volledig te bedienen door AI vi
 ## Stack
 
 Python 3.12, FastAPI, SQLite, Jinja2 + HTMX + Alpine.js, Tailwind CSS, TipTap.
+
+## Ontwikkelen
+
+Vereist: Python 3.12 en [uv](https://docs.astral.sh/uv/).
+
+```bash
+cp .env.example .env
+make setup
+make dev        # http://localhost:8000
+make test
+```
+
+## Zelf hosten
+
+```bash
+export SCHRIFT_SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(48))")
+docker compose up -d
+```
+
+Alle gegevens (notities, bijlagen, database) staan in het volume `/data`. Zet Schrift achter een reverse proxy met HTTPS.

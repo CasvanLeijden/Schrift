@@ -1,0 +1,12 @@
+.git
+.github
+.venv
+.claude
+bin
+data
+docs
+tests
+node_modules
+schrift/static/dist/*
+**/__pycache__
+.env
