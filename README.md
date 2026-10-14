@@ -36,6 +36,34 @@ docker compose exec schrift schrift user create jouwnaam --admin
 
 Log daarna in op je adres. Bij de eerste keer stel je tweestapsverificatie in met een authenticator-app. Extra gebruikers maak je aan via **Instellingen › Gebruikers**.
 
+### Kant-en-klaar image en automatisch bijwerken
+
+Elke commit op `main` die door de tests komt, wordt gepubliceerd als `ghcr.io/casvanleijden/schrift:latest` (plus een tag `sha-…` per commit). Wil je niet zelf bouwen, gebruik dan dat image in plaats van `build: .`:
+
+```yaml
+services:
+  schrift:
+    image: ghcr.io/casvanleijden/schrift:latest
+```
+
+Automatisch bijwerken kan zonder dat GitHub toegang tot je server nodig heeft: laat de server periodiek het nieuwste image ophalen. `docker compose up -d` herstart de container alleen als het image is veranderd. Bijvoorbeeld met een systemd-timer:
+
+```ini
+# /etc/systemd/system/schrift-update.service
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/schrift
+ExecStart=/usr/bin/docker compose pull -q
+ExecStart=/usr/bin/docker compose up -d
+
+# /etc/systemd/system/schrift-update.timer
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=2min
+[Install]
+WantedBy=timers.target
+```
+
 ### Configuratie
 
 | Variabele | Standaard | Betekenis |
@@ -120,4 +148,4 @@ make lint
 
 ## Licentie
 
-Nog niet gekozen.
+[MIT](LICENSE).
