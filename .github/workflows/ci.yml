@@ -42,6 +42,8 @@ jobs:
           curl -fs localhost:8000/login | grep -q Inloggen
           docker exec schrift schrift user create admin --admin --password ci-wachtwoord-123
           docker exec schrift ls /data/schrift.db
+          # the embedding model is downloaded into these at runtime
+          docker exec schrift sh -c 'mkdir -p "$HF_HOME" "$XDG_CACHE_HOME" && touch "$HF_HOME/ok" "$XDG_CACHE_HOME/ok"'
           docker logs schrift
 
   publish:

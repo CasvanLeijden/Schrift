@@ -20,10 +20,7 @@ ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
     UV_PROJECT_ENVIRONMENT=/opt/venv \
     PATH=/opt/venv/bin:$PATH \
-    SCHRIFT_DATA_DIR=/data \
-    HF_HOME=/data/models/huggingface \
-    XDG_CACHE_HOME=/data/cache \
-    HF_HUB_DISABLE_TELEMETRY=1
+    SCHRIFT_DATA_DIR=/data
 
 WORKDIR /app
 COPY pyproject.toml uv.lock README.md ./
@@ -38,6 +35,10 @@ ENV SCHRIFT_BUILD=$GIT_SHA
 RUN useradd --system --uid 1000 --home-dir /app schrift \
     && mkdir /data && chown schrift:schrift /data
 USER schrift
+# The home directory is read-only for this user; caches (the embedding model download) go to /data.
+ENV HF_HOME=/data/models/huggingface \
+    XDG_CACHE_HOME=/data/cache \
+    HF_HUB_DISABLE_TELEMETRY=1
 VOLUME /data
 EXPOSE 8000
 
