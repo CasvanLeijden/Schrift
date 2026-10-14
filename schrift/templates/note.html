@@ -79,7 +79,11 @@
           <div>
             <h2 class="footer-label">{{ t("Bijlagen") }}</h2>
             {% for a in attachments %}
-            <a class="nav pl-0" href="{{ attachment_url(a) }}" target="_blank" rel="noopener">{{ icon("file", 15) }}<span class="truncate">{{ a.filename }}</span><span class="count">{{ (a.size / 1024) | round | int }} kB</span></a>
+            <div class="flex items-center gap-1" x-data="{ sure: false, gone: false }" x-show="!gone" @click.outside="sure = false">
+              <a class="nav min-w-0 flex-1 pl-0" href="{{ attachment_url(a) }}" target="_blank" rel="noopener">{{ icon("file", 15) }}<span class="truncate">{{ a.filename }}</span><span class="count">{{ (a.size / 1024) | round | int }} kB</span></a>
+              <button type="button" class="icon-btn icon-btn-sm" x-show="!sure" @click="sure = true" aria-label="{{ t('Bijlage verwijderen') }}: {{ a.filename }}" title="{{ t('Bijlage verwijderen') }}">{{ icon("trash", 15) }}</button>
+              <button type="button" class="btn btn-sm btn-danger" x-show="sure" x-cloak @click="deleteAttachment({{ a.id | tojson | forceescape }}).then((ok) => { gone = ok; sure = false })">{{ t("Verwijderen") }}</button>
+            </div>
             {% endfor %}
           </div>
           {% endif %}
@@ -117,6 +121,17 @@
     <button type="button" @click="fmt('due')" aria-label="{{ t('Datum') }}">{{ icon("calendar", 18) }}</button>
     <button type="button" @click="fmt('link')" aria-label="{{ t('Link naar notitie') }}" class="font-serif">[[ ]]</button>
     <button type="button" @click="pickFile()" aria-label="{{ t('Bestand of afbeelding') }}">{{ icon("clip", 18) }}</button>
+  </div>
+  <div class="table-bar" x-show="table.open" x-cloak :style="table.style" role="toolbar" aria-label="{{ t('Tabel') }}" @mousedown.prevent>
+    <button type="button" @click="tableCmd('addRowBefore')">{{ t("Rij erboven") }}</button>
+    <button type="button" @click="tableCmd('addRowAfter')">{{ t("Rij eronder") }}</button>
+    <button type="button" @click="tableCmd('deleteRow')">{{ t("Rij weg") }}</button>
+    <span class="table-bar-sep" aria-hidden="true"></span>
+    <button type="button" @click="tableCmd('addColumnBefore')">{{ t("Kolom links") }}</button>
+    <button type="button" @click="tableCmd('addColumnAfter')">{{ t("Kolom rechts") }}</button>
+    <button type="button" @click="tableCmd('deleteColumn')">{{ t("Kolom weg") }}</button>
+    <span class="table-bar-sep" aria-hidden="true"></span>
+    <button type="button" class="text-late" @click="tableCmd('deleteTable')">{{ t("Tabel weg") }}</button>
   </div>
   <input type="file" x-ref="file" class="hidden" multiple @change="uploadFiles([...$event.target.files]); $event.target.value = ''">
   <div class="due-popover menu" x-show="due.open" x-cloak :style="due.style" @click.outside="due.open = false" @keydown.escape="due.open = false">

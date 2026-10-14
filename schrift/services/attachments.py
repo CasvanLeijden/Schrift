@@ -1,12 +1,13 @@
 import io
 import mimetypes
 import re
+import shutil
 from pathlib import Path
 
 from sqlalchemy import select
 
 from schrift import markdown as md
-from schrift.models import Attachment
+from schrift.models import Attachment, Note
 from schrift.services.vault import Vault, VaultError
 
 TEXT_TYPES = ("text/plain", "text/markdown", "text/csv")
@@ -92,3 +93,38 @@ def markdown_for(attachment: Attachment) -> str:
     if is_image(attachment):
         return f"![{attachment.filename}]({url})"
     return f"[{attachment.filename}]({url})"
+
+
+def remove_references(body: str, attachment_id: str) -> str:
+    """Drop the images and links that point at an attachment, and lines left empty."""
+    ref = re.compile(
+        r"!?\[[^\]\n]*\]\(/attachments/" + re.escape(attachment_id) + r"/[^)\n]*\)[ \t]*"
+    )
+    lines = []
+    for line in body.split("\n"):
+        if ref.search(line):
+            line = ref.sub("", line).rstrip()
+            if line.strip() in ("", "-", "*", "+"):
+                continue
+        lines.append(line)
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(lines))
+
+
+def delete_attachment(vault: Vault, attachment: Attachment, source: str = "web") -> Note | None:
+    """Delete the file and take it out of the note it belongs to (as a new version)."""
+    note = vault.session.get(Note, attachment.note_id) if attachment.note_id else None
+    if note is not None and (note.user_id != vault.user.id or note.deleted_at is not None):
+        note = None
+    attachment_id = attachment.id
+    shutil.rmtree(vault.attachments_dir / attachment_id, ignore_errors=True)
+    vault.session.delete(attachment)
+    vault.session.flush()
+    if note is None:
+        return None
+    body = vault.body(note)
+    cleaned = remove_references(body, attachment_id)
+    if cleaned != body:
+        vault.save(note, cleaned, source=source)
+    else:
+        vault._reindex(note, body)  # drop the attachment's text from search
+    return note

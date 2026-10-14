@@ -35,6 +35,7 @@ class User(Base):
     theme: Mapped[str] = mapped_column(String(8), default="system")
     timezone: Mapped[str] = mapped_column(String(64), default="Europe/Amsterdam")
     ui_state: Mapped[dict] = mapped_column(JSON, default=dict)
+    caldav_excluded: Mapped[list] = mapped_column(JSON, default=list)  # folder ids, not synced
     session_version: Mapped[int] = mapped_column(Integer, default=1)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 

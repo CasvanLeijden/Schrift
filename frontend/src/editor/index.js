@@ -214,6 +214,7 @@ window.Alpine.data('noteEditor', () => {
     updatedBy: null,
     updatedAt: null,
     due: { open: false, date: '', time: '', from: 0, to: 0, style: '' },
+    table: { open: false, style: '' },
 
     get statusText() {
       if (this.status === 'saving') return tr('Opslaan…')
@@ -255,6 +256,12 @@ window.Alpine.data('noteEditor', () => {
         if (transaction.getMeta('remote')) return
         this.scheduleSave()
       })
+      editor.on('selectionUpdate', () => this.placeTableBar())
+      editor.on('update', () => this.placeTableBar())
+      editor.on('blur', () => setTimeout(() => this.placeTableBar(), 0))
+      document.addEventListener('scroll', () => this.table.open && this.placeTableBar(), true)
+      // Images that finish loading move the table; keep the bar on it.
+      new ResizeObserver(() => this.table.open && this.placeTableBar()).observe(this.$refs.editor)
       editor.setOptions({
         editorProps: {
           handlePaste: (_view, event) => this.handleFiles(event.clipboardData?.files),
@@ -445,6 +452,41 @@ window.Alpine.data('noteEditor', () => {
             .run()
         }
       }
+    },
+
+    // --- tables --------------------------------------------------------------------------------------
+    placeTableBar() {
+      const { $from } = editor.state.selection
+      let depth = $from.depth
+      while (depth > 0 && $from.node(depth).type.name !== 'table') depth--
+      let dom = depth && editor.isFocused ? editor.view.nodeDOM($from.before(depth)) : null
+      if (dom && dom.nodeType !== 1) dom = dom.parentElement
+      // The active table makes room above itself for the bar, so it covers nothing.
+      if (this._tableDom && this._tableDom !== dom) this._tableDom.classList.remove('has-table-bar')
+      this._tableDom = dom
+      if (!dom) {
+        this.table.open = false
+        return
+      }
+      dom.classList.add('has-table-bar')
+      const rect = dom.getBoundingClientRect()
+      const left = Math.max(8, rect.left)
+      this.table = { open: true, style: `left:${left}px;top:${rect.top + 2}px` }
+    },
+    tableCmd(name) {
+      editor.chain().focus()[name]().run()
+      this.placeTableBar()
+    },
+
+    async deleteAttachment(id) {
+      if (this.dirty) await this.saveNow()
+      const { ok, data } = await api('DELETE', `/api/attachments/${id}`)
+      if (!ok) {
+        window.schriftToast(data?.error || tr('Er ging iets mis.'))
+        return false
+      }
+      if (data.note && data.note.hash !== this.hash) this.applyRemote(data.note)
+      return true
     },
 
     // --- due dates ---------------------------------------------------------------------------------

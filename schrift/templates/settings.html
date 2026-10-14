@@ -87,6 +87,23 @@
           <li>{{ t("Vul bij Server alleen de domeinnaam in, en je gebruikersnaam en het app-wachtwoord.") }}</li>
         </ol>
       </details>
+      {% if folder_options %}
+      <form method="post" action="/settings/caldav" class="field items-start">
+        <span class="pt-0.5">{{ t("Niet synchroniseren") }}</span>
+        <div class="min-w-0">
+          <p class="mb-2 text-[13px] text-muted">{{ t("Taken in deze mappen (en hun submappen) blijven alleen in Schrift.") }}</p>
+          <div class="mb-3 flex flex-col gap-1.5">
+            {% for opt in folder_options %}
+            <label class="flex items-center gap-2 text-[14px]" style="padding-left: {{ (opt.path.count('/')) * 1.25 }}rem">
+              <input type="checkbox" name="excluded" value="{{ opt.id }}" class="h-4 w-4 accent-[var(--accent)]" {% if opt.id in caldav_excluded %}checked{% endif %}>
+              <span class="truncate">{{ opt.path.rsplit('/', 1)[-1] }}</span>
+            </label>
+            {% endfor %}
+          </div>
+          <button class="btn btn-sm">{{ t("Opslaan") }}</button>
+        </div>
+      </form>
+      {% endif %}
       <div class="field items-start"><span class="pt-2">{{ t("App-wachtwoorden") }}</span>
         <div class="min-w-0">
           {{ secret_box("caldav") }}

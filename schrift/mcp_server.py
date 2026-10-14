@@ -24,7 +24,7 @@ from schrift.context import AppContext
 from schrift.models import Link, Note, Task, User
 from schrift.oauth import SCOPE, SchriftOAuthProvider
 from schrift.services import attachments as att
-from schrift.services.search import hybrid
+from schrift.services.search import MODES, hybrid
 from schrift.services.vault import Vault, VaultError
 
 SOURCE = "mcp"
@@ -155,13 +155,19 @@ def build_server(ctx: AppContext) -> MCPServer:
     # --- notes ----------------------------------------------------------------------------
 
     @mcp.tool()
-    def search_notes(query: str, limit: int = 10) -> list[dict]:
+    def search_notes(query: str, limit: int = 10, mode: str = "all") -> list[dict]:
         """Search notes by words (titles, text, tags, attachment text) and by meaning.
 
-        Returns the best matches with a short snippet. Use get_note to read one.
+        mode: "all" (words and meaning), "text" (exact words only) or "meaning" (only
+        semantically similar notes). Returns the best matches with a short snippet.
+        Use get_note to read one.
         """
+        if mode not in MODES:
+            raise ValueError("mode must be 'all', 'text' or 'meaning'.")
         with user_vault(ctx) as vault:
-            results = hybrid(vault.session, vault.user.id, query, ctx.semantic, limit=limit)
+            results = hybrid(
+                vault.session, vault.user.id, query, ctx.semantic, limit=limit, mode=mode
+            )
             return [
                 {
                     **note_summary(vault, r.note),
@@ -547,6 +553,13 @@ def build_server(ctx: AppContext) -> MCPServer:
                 "note_id": item.note_id,
                 "text": item.text,
             }
+
+    @mcp.tool()
+    def delete_attachment(attachment_id: str) -> dict:
+        """Delete an attachment for good, and remove its image or link from the note."""
+        with user_vault(ctx) as vault:
+            note = att.delete_attachment(vault, att.get_attachment(vault, attachment_id), SOURCE)
+            return {"deleted": attachment_id, "note_id": note.id if note else None}
 
     # --- meeting reports and import -------------------------------------------------------
 

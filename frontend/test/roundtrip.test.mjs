@@ -76,3 +76,16 @@ for (const [name, src] of Object.entries(CASES)) {
     assert.equal(roundtrip(src), src)
   })
 }
+
+test('image width is kept in the alt text', () => {
+  const src = '![schets|320](/attachments/01JA8K0000000000000000000/schets.png)\n'
+  assert.equal(roundtrip(src), src)
+  const el = document.createElement('div')
+  const editor = createEditor({ element: el, markdown: src })
+  let width = null
+  editor.state.doc.descendants((n) => {
+    if (n.type.name === 'image') width = n.attrs.width
+  })
+  editor.destroy()
+  assert.equal(width, 320)
+})

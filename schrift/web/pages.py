@@ -10,7 +10,7 @@ from schrift import security
 from schrift.i18n import translate
 from schrift.models import ApiToken, AppPassword, Link, Note, OAuthClient, OAuthToken, Task, User
 from schrift.services import attachments as att
-from schrift.services.search import hybrid
+from schrift.services.search import MODES, hybrid
 from schrift.services.vault import VaultError
 from schrift.web.api import note_payload
 from schrift.web.common import (
@@ -268,10 +268,30 @@ def quick_add_task(
 
 
 @router.get("/search")
-def search_page(request: Request, q: str = "", session: Session = SessionDep, user: User = UserDep):
+def search_page(
+    request: Request,
+    q: str = "",
+    mode: str | None = None,
+    session: Session = SessionDep,
+    user: User = UserDep,
+):
     vault = vault_for(request, session, user)
-    results = hybrid(session, user.id, q, semantic=get_ctx(request).semantic) if q.strip() else []
-    return render(request, "search.html", user=user, q=q, results=results, **shell_context(vault))
+    if mode in MODES:
+        user.ui_state = {**(user.ui_state or {}), "search_mode": mode}
+    else:
+        mode = (user.ui_state or {}).get("search_mode", "all")
+    semantic = get_ctx(request).semantic
+    results = hybrid(session, user.id, q, semantic=semantic, mode=mode) if q.strip() else []
+    return render(
+        request,
+        "search.html",
+        user=user,
+        q=q,
+        mode=mode,
+        semantic_available=semantic is not None,
+        results=results,
+        **shell_context(vault),
+    )
 
 
 @router.get("/trash")
@@ -347,6 +367,7 @@ def settings_context(request: Request, session: Session, user: User) -> dict:
             for c in clients
         ],
         "users": users,
+        "caldav_excluded": set(user.caldav_excluded or []),
         "timezones": ["Europe/Amsterdam", "Europe/Brussels", "Europe/London", "UTC"],
     }
 
@@ -390,6 +411,15 @@ def settings_theme(theme: str = Form("system"), user: User = UserDep):
     if theme in ("system", "light", "dark"):
         user.theme = theme
     return {"ok": True}
+
+
+@router.post("/settings/caldav")
+async def settings_caldav(request: Request, session: Session = SessionDep, user: User = UserDep):
+    form = await request.form()
+    ids = [int(v) for v in form.getlist("excluded") if str(v).isdigit()]
+    vault_for(request, session, user).set_caldav_excluded(ids)
+    flash(request, translate(user.language, "Opgeslagen."))
+    return redirect("/settings#caldav")
 
 
 @router.post("/settings/password")

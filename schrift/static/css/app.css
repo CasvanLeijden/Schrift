@@ -348,8 +348,13 @@
   .seg {
     @apply inline-flex h-8 items-center rounded-lg px-3 text-[14px] text-muted no-underline hover:bg-hover;
   }
-  .seg.is-on {
+  .seg.is-on,
+  .seg-radio:has(:checked) {
     @apply bg-text text-bg hover:bg-text;
+  }
+  .seg-radio:has(:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
   .switch {
     @apply inline-flex min-h-9 items-center gap-2 text-[14px] text-muted no-underline;
@@ -534,6 +539,16 @@
   .due-popover {
     @apply fixed w-64;
   }
+  .table-bar {
+    @apply fixed z-40 flex max-w-[calc(100vw-16px)] items-center gap-0.5 overflow-x-auto rounded-lg border border-line bg-bg p-1 font-sans text-[12.5px];
+    box-shadow: var(--shadow);
+  }
+  .table-bar button {
+    @apply shrink-0 rounded-md px-2 py-1 whitespace-nowrap text-text hover:bg-hover;
+  }
+  .table-bar-sep {
+    @apply mx-0.5 h-4 w-px shrink-0 bg-line;
+  }
 }
 
 /* --- editor content ------------------------------------------------------------------------------ */
@@ -643,8 +658,33 @@
 .prose-note .ProseMirror img {
   @apply my-2 max-h-[70vh] max-w-full rounded-lg;
 }
-.prose-note .ProseMirror img.ProseMirror-selectednode {
+.prose-note .ProseMirror img.ProseMirror-selectednode,
+.prose-note .ProseMirror .ProseMirror-selectednode img {
   outline: 2px solid var(--accent);
+}
+.prose-note .ProseMirror [data-resize-container] {
+  @apply my-2;
+}
+.prose-note .ProseMirror [data-resize-wrapper] {
+  position: relative;
+  max-width: 100%;
+}
+.prose-note .ProseMirror [data-resize-wrapper] img {
+  @apply my-0 h-auto;
+}
+.prose-note .ProseMirror [data-resize-handle] {
+  @apply z-10 h-3.5 w-3.5 rounded-full border-2 border-bg bg-accent opacity-0 transition-opacity;
+  margin: -5px;
+}
+.prose-note .ProseMirror [data-resize-handle="bottom-right"] {
+  cursor: nwse-resize;
+}
+.prose-note .ProseMirror [data-resize-handle="bottom-left"] {
+  cursor: nesw-resize;
+}
+.prose-note .ProseMirror [data-resize-container]:hover [data-resize-handle],
+.prose-note .ProseMirror [data-resize-state="true"] [data-resize-handle] {
+  opacity: 1;
 }
 .prose-note .ProseMirror a {
   @apply text-accent underline underline-offset-2;
@@ -658,6 +698,19 @@
 }
 .prose-note .ProseMirror th {
   @apply bg-side font-semibold;
+}
+.prose-note .ProseMirror .tableWrapper {
+  @apply overflow-x-auto;
+}
+.prose-note .ProseMirror .has-table-bar {
+  padding-top: 44px;
+}
+.prose-note .ProseMirror .selectedCell {
+  @apply bg-accent-soft;
+}
+.prose-note .ProseMirror th > p,
+.prose-note .ProseMirror td > p {
+  margin: 0;
 }
 .prose-note .ProseMirror .details {
   @apply flex gap-1 border-t border-line pt-3 font-sans text-[14px];

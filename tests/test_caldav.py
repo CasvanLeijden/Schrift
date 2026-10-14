@@ -96,7 +96,7 @@ def test_list_and_multiget(dav):
     body = MULTIGET.format(hrefs="".join(f"<d:href>{h}</d:href>" for h in hrefs)).encode()
     r = dav("REPORT", "/caldav/cas/schrift/", body, Depth="1")
     assert r.status_code == 207
-    assert "SUMMARY:[ZOKA] Offerte sturen" in r.text
+    assert "SUMMARY:Offerte sturen [ZOKA]" in r.text
     assert "DUE:20261020T120000Z" in r.text  # 14:00 Amsterdam (CEST) in UTC
     assert "STATUS:NEEDS-ACTION" in r.text
     assert "URL:" not in r.text and "DESCRIPTION:" not in r.text
@@ -116,8 +116,8 @@ def test_complete_from_phone_updates_markdown(dav):
     assert r.status_code == 412
 
 
-def test_edit_title_and_due_keeps_prefix_out(dav):
-    body = vtodo("aaaaa@schrift", "[ZOKA] Offerte versturen", "DUE;VALUE=DATE:20261101\r\n")
+def test_edit_title_and_due_keeps_label_out(dav):
+    body = vtodo("aaaaa@schrift", "Offerte versturen [ZOKA]", "DUE;VALUE=DATE:20261101\r\n")
     assert dav("PUT", "/caldav/cas/schrift/aaaaa.ics", body).status_code == 204
     assert "- [ ] Offerte versturen 📅 2026-11-01 🆔 aaaaa" in note_text(dav)
 
@@ -195,3 +195,32 @@ def test_old_note_links_from_the_phone_are_dropped(dav):
     )
     r = dav("GET", "/caldav/cas/schrift/aaaaa.ics")
     assert "URL:" not in r.text and "DESCRIPTION:" not in r.text
+
+
+def test_excluded_folders_stay_out_of_sync(dav):
+    r = dav("REPORT", "/caldav/cas/schrift/", SYNC.format(token="").encode(), Depth="1")
+    token = re.search(r"<d:sync-token>([^<]+)</d:sync-token>", r.text).group(1)
+    ctx = dav.ctx
+    with ctx.db.session() as s:
+        user = s.query(User).filter_by(username="cas").one()
+        vault = ctx.vault(s, user)
+        vault.create_folder("Verslagen", parent_id=vault.folder_by_path("ZOKA").id)
+        vault.set_caldav_excluded([vault.folder_by_path("ZOKA").id])
+        assert vault.caldav_excluded_ids() == {
+            vault.folder_by_path("ZOKA").id,
+            vault.folder_by_path("ZOKA/Verslagen").id,
+        }
+    r = dav("PROPFIND", "/caldav/cas/schrift/", b"", Depth="1")
+    assert ".ics" not in r.text
+    assert dav("GET", "/caldav/cas/schrift/aaaaa.ics").status_code == 404
+    # the client learns that the tasks are gone
+    r = dav("REPORT", "/caldav/cas/schrift/", SYNC.format(token=token).encode(), Depth="1")
+    assert r.text.count("404") >= 2
+    # a stale PUT cannot create a duplicate in the Inbox
+    assert (
+        dav("PUT", "/caldav/cas/schrift/aaaaa.ics", vtodo("aaaaa@schrift", "x")).status_code == 403
+    )
+    with ctx.db.session() as s:
+        user = s.query(User).filter_by(username="cas").one()
+        ctx.vault(s, user).set_caldav_excluded([])
+    assert dav("GET", "/caldav/cas/schrift/aaaaa.ics").status_code == 200

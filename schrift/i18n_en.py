@@ -261,4 +261,26 @@ EN: dict[str, str] = {
         "Use only letters, digits, dot, dash or underscore."
     ),
     "Die gebruikersnaam bestaat al.": "That username already exists.",
+    # editor tables, attachments
+    "Rij erboven": "Row above",
+    "Rij eronder": "Row below",
+    "Rij weg": "Delete row",
+    "Kolom links": "Column left",
+    "Kolom rechts": "Column right",
+    "Kolom weg": "Delete column",
+    "Tabel weg": "Delete table",
+    "Bijlage verwijderen": "Delete attachment",
+    # CalDAV folders
+    "Niet synchroniseren": "Don't sync",
+    "Taken in deze mappen (en hun submappen) blijven alleen in Schrift.": (
+        "Tasks in these folders (and their subfolders) stay in Schrift only."
+    ),
+    # search modes
+    "Zoekwijze": "Search mode",
+    "Slim": "Smart",
+    "Woorden en betekenis": "Words and meaning",
+    "Woorden": "Words",
+    "Alleen exacte woorden": "Exact words only",
+    "Betekenis": "Meaning",
+    "Alleen vergelijkbare notities": "Only similar notes",
 }

@@ -664,6 +664,35 @@ class Vault:
     def _log_change(self, caldav_name: str, deleted: bool = False) -> None:
         self.session.add(TaskChange(user_id=self.user.id, caldav_name=caldav_name, deleted=deleted))
 
+    def caldav_excluded_ids(self) -> set[int]:
+        """Folders whose tasks stay out of CalDAV, including their subfolders."""
+        chosen = set(self.user.caldav_excluded or [])
+        if not chosen:
+            return set()
+        ids: set[int] = set()
+        for folder in self.folders():
+            if folder.id in chosen:
+                ids.update(self._descendant_ids(folder))
+        return ids
+
+    def set_caldav_excluded(self, folder_ids: list[int]) -> None:
+        """Choose the folders that stay out of CalDAV; clients drop or fetch their tasks."""
+        known = {f.id for f in self.folders()}
+        before = self.caldav_excluded_ids()
+        self.user.caldav_excluded = sorted({i for i in folder_ids if i in known})
+        after = self.caldav_excluded_ids()
+        changed = before ^ after
+        if not changed:
+            return
+        tasks = self.session.scalars(
+            select(Task)
+            .join(Note, Task.note_id == Note.id)
+            .where(Task.user_id == self.user.id, Note.folder_id.in_(changed))
+        )
+        for task in tasks:
+            self._log_change(task.caldav_name, deleted=task.note.folder_id in after)
+        self.session.flush()
+
     def _touch_tasks(self, note: Note) -> None:
         """The CalDAV representation depends on the folder; flag the tasks as changed."""
         for task in self.session.scalars(select(Task).where(Task.note_id == note.id)):

@@ -175,3 +175,53 @@ def test_settings_secrets_and_admin(web):
     web.post("/settings/general", data={"language": "en", "theme": "dark", "timezone": "UTC"})
     page = web.get("/settings")
     assert "Settings" in page.text and 'data-theme="dark"' in page.text
+
+
+def test_delete_attachment_removes_file_and_reference(web):
+    note = web.post("/api/notes", json={"title": "Met plaatje"}).json()
+    r = web.post(
+        "/api/attachments",
+        files={"file": ("schets.png", b"\x89PNG fake", "image/png")},
+        data={"noteId": note["id"]},
+    ).json()
+    content = f"Voor\n\n![schets.png|320]({r['url']})\n\n- [link]({r['url']})\n\nNa\n"
+    saved = web.put(
+        f"/api/notes/{note['id']}", json={"title": "Met plaatje", "content": content}
+    ).json()
+    assert saved["hash"]
+    res = web.delete(f"/api/attachments/{r['id']}").json()
+    assert res["note"]["content"] == "Voor\n\nNa\n"
+    assert web.get(r["url"]).status_code == 404
+    assert web.delete(f"/api/attachments/{r['id']}").status_code == 404
+
+
+def test_caldav_settings_and_search_modes(web):
+    folder = web.post("/api/folders", json={"name": "ZOKA"}).json()
+    r = web.post("/settings/caldav", data={"excluded": [str(folder["id"])]}, follow_redirects=False)
+    assert r.status_code == 303
+    page = web.get("/settings").text
+    assert f'value="{folder["id"]}" class' in page and "checked" in page
+    web.post("/api/notes", json={"title": "Penningen"})
+    assert 'class="result"' in web.get("/search?q=penningen&mode=text").text
+    with web.ctx.db.session() as s:
+        assert s.query(User).filter_by(username="cas").one().ui_state["search_mode"] == "text"
+    # without semantic search (as in tests) "meaning" falls back to words
+    assert 'class="result"' in web.get("/search?q=penningen&mode=meaning").text
+    assert 'class="result"' not in web.get("/search?q=bestaatniet").text
+
+
+def test_search_mode_choice_shows_with_semantic_search(web):
+    class Semantic:
+        def search(self, *args, **kwargs):
+            return []
+
+        def schedule(self, *args):
+            pass
+
+        def stop(self):
+            pass
+
+    web.ctx.semantic = Semantic()
+    html = web.get("/search?q=x&mode=meaning").text
+    assert html.count('name="mode"') == 3
+    assert 'value="meaning" class="sr-only" checked' in html

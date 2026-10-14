@@ -138,7 +138,7 @@ def to_ical(vault: Vault, task: Task) -> bytes:
             break
     context = task_context(vault, task)
     todo.add("uid", task.caldav_uid)
-    todo.add("summary", f"[{context}] {task.title}" if context else task.title)
+    todo.add("summary", f"{task.title} [{context}]" if context else task.title)
     todo.add("dtstamp", task.updated_at.replace(tzinfo=UTC))
     todo.add("created", task.created_at.replace(tzinfo=UTC))
     todo.add("last-modified", task.updated_at.replace(tzinfo=UTC))
@@ -184,11 +184,14 @@ def due_from_ical(todo: Todo, user: User) -> str | None:
 
 
 def strip_context(summary: str, context: str | None) -> str:
+    """Remove the folder label we add, behind the title (or in front, as it used to be)."""
     summary = summary.strip()
     if context:
-        prefix = f"[{context}]"
-        if summary.lower().startswith(prefix.lower()):
-            return summary[len(prefix) :].strip()
+        label = f"[{context}]".lower()
+        if summary.lower().endswith(label):
+            return summary[: -len(label)].strip()
+        if summary.lower().startswith(label):
+            return summary[len(label) :].strip()
     return summary
 
 
@@ -227,22 +230,24 @@ def sync_revision(session: Session, user: User) -> int:
     return session.scalar(select(func.max(TaskChange.id)).where(TaskChange.user_id == user.id)) or 0
 
 
-def user_tasks(session: Session, user: User) -> list[Task]:
-    return list(
-        session.scalars(
-            select(Task)
-            .join(Note, Task.note_id == Note.id)
-            .where(Task.user_id == user.id, Note.deleted_at.is_(None))
-        )
+def user_tasks(session: Session, user: User, excluded: set[int] = frozenset()) -> list[Task]:
+    tasks = session.scalars(
+        select(Task)
+        .join(Note, Task.note_id == Note.id)
+        .where(Task.user_id == user.id, Note.deleted_at.is_(None))
     )
+    return [t for t in tasks if t.note.folder_id not in excluded]
 
 
-def find_task(session: Session, user: User, name: str) -> Task | None:
-    return session.scalar(
+def find_task(
+    session: Session, user: User, name: str, excluded: set[int] = frozenset()
+) -> Task | None:
+    task = session.scalar(
         select(Task)
         .join(Note, Task.note_id == Note.id)
         .where(Task.user_id == user.id, Task.caldav_name == name, Note.deleted_at.is_(None))
     )
+    return None if task is None or task.note.folder_id in excluded else task
 
 
 def requested_props(body: bytes) -> list[str] | None:
@@ -410,6 +415,7 @@ class CalDav:
         self.session = session
         self.user = user
         self.vault = ctx.vault(session, user)
+        self.excluded = self.vault.caldav_excluded_ids()
 
     def ical(self, task: Task) -> bytes:
         return to_ical(self.vault, task)
@@ -441,12 +447,12 @@ class CalDav:
             found, missing = select_props(list_props(self.session, self.user), wanted)
             add_response(ms, list_href(self.user), found, missing)
             if depth != "0":
-                for task in user_tasks(self.session, self.user):
+                for task in user_tasks(self.session, self.user, self.excluded):
                     data = self.ical(task)
                     found, missing = select_props(item_props(data), wanted)
                     add_response(ms, item_href(self.user, task), found, missing)
         else:
-            task = find_task(self.session, self.user, name)
+            task = find_task(self.session, self.user, name, self.excluded)
             if task is None:
                 return Response(status_code=404)
             data = self.ical(task)
@@ -472,7 +478,7 @@ class CalDav:
         if root.tag == q(CAL, "calendar-multiget"):
             for href_el in root.findall(q(DAV, "href")):
                 name = unquote((href_el.text or "").rstrip("/").rsplit("/", 1)[-1])
-                task = find_task(self.session, self.user, name)
+                task = find_task(self.session, self.user, name, self.excluded)
                 if task is None:
                     add_missing_response(ms, href_el.text or "")
                 else:
@@ -485,7 +491,7 @@ class CalDav:
                 and pf.find(q(CAL, "is-not-defined")) is not None
                 for pf in root.iter(q(CAL, "prop-filter"))
             )
-            for task in user_tasks(self.session, self.user):
+            for task in user_tasks(self.session, self.user, self.excluded):
                 if only_open and task.done:
                     continue
                 add_task(task)
@@ -495,7 +501,7 @@ class CalDav:
             token = (root.findtext(q(DAV, "sync-token")) or "").strip()
             current = sync_revision(self.session, self.user)
             if not token:
-                for task in user_tasks(self.session, self.user):
+                for task in user_tasks(self.session, self.user, self.excluded):
                     add_task(task)
             else:
                 match = re.fullmatch(re.escape(SYNC_PREFIX) + r"(\d+)", token)
@@ -514,7 +520,7 @@ class CalDav:
                     )
                 )
                 for name in names:
-                    task = find_task(self.session, self.user, name)
+                    task = find_task(self.session, self.user, name, self.excluded)
                     if task is None:
                         add_missing_response(ms, list_href(self.user) + quote(name))
                     else:
@@ -526,7 +532,7 @@ class CalDav:
 
     # GET / PUT / DELETE ----------------------------------------------------
     def get(self, name: str, head: bool = False) -> Response:
-        task = find_task(self.session, self.user, name)
+        task = find_task(self.session, self.user, name, self.excluded)
         if task is None:
             return Response(status_code=404)
         data = self.ical(task)
@@ -544,7 +550,7 @@ class CalDav:
             return Response("Expected a VTODO", status_code=415)
         if_match = self.request.headers.get("if-match")
         if_none_match = self.request.headers.get("if-none-match")
-        task = find_task(self.session, self.user, name)
+        task = find_task(self.session, self.user, name, self.excluded)
 
         if task is not None:
             current = etag_of(self.ical(task))
@@ -570,6 +576,8 @@ class CalDav:
         else:
             if if_match:
                 return Response(status_code=412)
+            if find_task(self.session, self.user, name) is not None:
+                return Response(status_code=403)  # a task in a folder that is not synced
             title = strip_context(str(todo.get("SUMMARY", "")), None) or "Naamloos"
             task = self.vault.create_task(
                 title, due=due_from_ical(todo, self.user), source="caldav"
@@ -586,7 +594,7 @@ class CalDav:
         return Response(status_code=status, headers={"ETag": etag_of(self.ical(task))})
 
     def delete(self, name: str) -> Response:
-        task = find_task(self.session, self.user, name)
+        task = find_task(self.session, self.user, name, self.excluded)
         if task is None:
             return Response(status_code=404)
         if_match = self.request.headers.get("if-match")

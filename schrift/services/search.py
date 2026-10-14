@@ -61,12 +61,27 @@ def fulltext(
     return results[:limit]
 
 
+MODES = ("all", "text", "meaning")
+
+
 def hybrid(
-    session: Session, user_id: int, query: str, semantic=None, limit: int = 20
+    session: Session,
+    user_id: int,
+    query: str,
+    semantic=None,
+    limit: int = 20,
+    mode: str = "all",
 ) -> list[SearchResult]:
-    """Reciprocal-rank fusion of full-text and (when available) semantic results."""
-    text_results = fulltext(session, user_id, query, limit=limit)
-    meaning = semantic.search(session, user_id, query, limit=limit) if semantic else []
+    """Reciprocal-rank fusion of full-text and (when available) semantic results.
+
+    mode "text" only matches words, "meaning" only searches semantically (and falls back
+    to words when semantic search is not available).
+    """
+    if semantic is None and mode == "meaning":
+        mode = "text"
+    text_results = fulltext(session, user_id, query, limit=limit) if mode != "meaning" else []
+    use_meaning = semantic is not None and mode != "text"
+    meaning = semantic.search(session, user_id, query, limit=limit) if use_meaning else []
     scores: dict[str, float] = {}
     best: dict[str, SearchResult] = {}
     for rank, r in enumerate(text_results):

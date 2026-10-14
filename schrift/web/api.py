@@ -262,7 +262,8 @@ def titles(
 
 @router.get("/search")
 def search(q: str, request: Request, session: Session = SessionDep, user: User = UserDep):
-    results = hybrid(session, user.id, q, semantic=get_ctx(request).semantic, limit=15)
+    mode = (user.ui_state or {}).get("search_mode", "all")
+    results = hybrid(session, user.id, q, semantic=get_ctx(request).semantic, limit=15, mode=mode)
     return [
         {
             "id": r.note.id,
@@ -442,3 +443,15 @@ async def upload(
         "isImage": att.is_image(attachment),
         "markdown": att.markdown_for(attachment),
     }
+
+
+@router.delete("/attachments/{attachment_id}")
+def delete_attachment(
+    attachment_id: str, request: Request, session: Session = SessionDep, user: User = UserDep
+):
+    vault = vault_for(request, session, user)
+    try:
+        note = att.delete_attachment(vault, att.get_attachment(vault, attachment_id))
+    except VaultError as e:
+        return error(str(e), 404)
+    return {"ok": True, "note": note_payload(vault, note) if note else None}
