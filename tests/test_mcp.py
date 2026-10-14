@@ -1,5 +1,6 @@
 import base64
 import hashlib
+import io
 import json
 import re
 from urllib.parse import parse_qs, urlparse
@@ -189,7 +190,29 @@ def test_import_and_attachments(setup):
     png = base64.b64encode(b"\x89PNG\r\n\x1a\n").decode()
     img = call(c, "add_attachment", note="Pasta", filename="foto.png", content_base64=png)
     assert img["markdown"].startswith("![foto.png](/attachments/")
+    assert call(c, "get_note", note="Pasta")["attachments"][1]["is_image"]
     assert call(c, "search_notes", query="tomaat")[0]["title"] == "Pasta"
+
+
+def test_note_images_are_returned_scaled_down(setup):
+    from PIL import Image
+
+    c = setup["client"]
+    buf = io.BytesIO()
+    Image.new("RGB", (3000, 1500), "red").save(buf, "PNG")
+    call(c, "create_note", title="Schets", content="Zie foto")
+    call(
+        c,
+        "add_attachment",
+        note="Schets",
+        filename="schets.png",
+        content_base64=base64.b64encode(buf.getvalue()).decode(),
+    )
+    data = rpc(c, "tools/call", {"name": "get_note_images", "arguments": {"note": "Schets"}})
+    [block] = data["result"]["content"]
+    assert block["type"] == "image" and block["mimeType"] == "image/jpeg"
+    with Image.open(io.BytesIO(base64.b64decode(block["data"]))) as img:
+        assert img.size == (1568, 784)
 
 
 def test_prompts(setup):

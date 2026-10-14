@@ -88,6 +88,50 @@ def note_attachments(vault: Vault, note_id: str) -> list[Attachment]:
     )
 
 
+def referenced_ids(body: str) -> list[str]:
+    """Ids of the attachments a note body links to, in order."""
+    return list(dict.fromkeys(re.findall(r"\(/attachments/([0-9A-Za-z]+)/", body)))
+
+
+def note_images(vault: Vault, note: Note) -> list[Attachment]:
+    """The images shown in a note, plus images attached to it but not shown."""
+    ids = referenced_ids(vault.body(note))
+    found = {
+        a.id: a
+        for a in vault.session.scalars(
+            select(Attachment).where(Attachment.user_id == vault.user.id, Attachment.id.in_(ids))
+        )
+    }
+    images = [found[i] for i in ids if i in found and is_image(found[i])]
+    images += [a for a in note_attachments(vault, note.id) if is_image(a) and a not in images]
+    return images
+
+
+MODEL_IMAGE_SIDE = 1568  # larger images are scaled down by the model anyway
+
+
+def image_for_model(vault: Vault, attachment: Attachment) -> tuple[bytes, str]:
+    """An image's bytes and format, scaled down for a model client."""
+    max_side = MODEL_IMAGE_SIDE
+    data = attachment_path(vault, attachment).read_bytes()
+    fmt = attachment.content_type.split("/")[1]
+    try:
+        from PIL import Image
+
+        with Image.open(io.BytesIO(data)) as img:
+            if max(img.size) <= max_side and fmt != "gif":
+                return data, fmt
+            img.thumbnail((max_side, max_side))
+            out = io.BytesIO()
+            if img.mode in ("RGBA", "LA", "P"):
+                img.save(out, "PNG", optimize=True)
+                return out.getvalue(), "png"
+            img.convert("RGB").save(out, "JPEG", quality=85)
+            return out.getvalue(), "jpeg"
+    except Exception:
+        return data, fmt
+
+
 def markdown_for(attachment: Attachment) -> str:
     url = attachment_url(attachment).replace(" ", "%20")
     if is_image(attachment):

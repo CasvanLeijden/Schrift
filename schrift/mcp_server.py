@@ -14,6 +14,7 @@ from mcp.server.auth.middleware.auth_context import get_access_token
 from mcp.server.auth.settings import AuthSettings, ClientRegistrationOptions, RevocationOptions
 from mcp.server.mcpserver import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
+from mcp.server.mcpserver.utilities.types import Image
 from mcp.server.transport_security import TransportSecuritySettings
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -45,6 +46,8 @@ Conventions:
 - Meeting reports go in `<Context>/Verslagen` and are created with
   create_meeting_report.
 - Open tasks sync to the user's reminders app; ticking one there ticks it here.
+- Images in a note show up as `![name](/attachments/...)`; call get_note_images to see
+  them.
 
 Prefer edit_note (exact text replacement) or update_note with mode "append" or
 "replace_section" over rewriting whole notes. Deleting moves a note to the trash.
@@ -233,7 +236,12 @@ def build_server(ctx: AppContext) -> MCPServer:
                 "content": vault.body(n),
                 "backlinks": list(backlinks),
                 "attachments": [
-                    {"id": a.id, "filename": a.filename, "url": att.attachment_url(a)}
+                    {
+                        "id": a.id,
+                        "filename": a.filename,
+                        "url": att.attachment_url(a),
+                        "is_image": att.is_image(a),
+                    }
                     for a in att.note_attachments(vault, n.id)
                 ],
             }
@@ -553,6 +561,19 @@ def build_server(ctx: AppContext) -> MCPServer:
                 "note_id": item.note_id,
                 "text": item.text,
             }
+
+    @mcp.tool()
+    def get_note_images(note: str, limit: int = 10) -> list[Image]:
+        """Look at the images in a note (photos, screenshots, scans), in the order they appear.
+
+        `note` is its id, path or title. Large images are scaled down.
+        """
+        with user_vault(ctx) as vault:
+            images = att.note_images(vault, vault.find_note(note))[: max(1, min(limit, 20))]
+            return [
+                Image(data=data, format=fmt)
+                for data, fmt in (att.image_for_model(vault, a) for a in images)
+            ]
 
     @mcp.tool()
     def delete_attachment(attachment_id: str) -> dict:
