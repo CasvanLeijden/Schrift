@@ -32,6 +32,9 @@
       </a>
       {% else %}
       <p class="text-muted">{{ t("Niets gevonden voor '{q}'.", q=q) }}</p>
+      {% if mode == "meaning" and semantic_available %}
+      <p class="mt-2 text-[14px] text-muted">{{ t("Zoeken op betekenis vindt geen losse namen of vaktermen.") }} <a class="text-accent" href="/search?q={{ q | urlencode }}&amp;mode=all">{{ t("Zoek slim") }}</a></p>
+      {% endif %}
       {% endfor %}
     {% endif %}
   </div>

@@ -173,6 +173,8 @@ EN: dict[str, str] = {
     # search & trash
     "vergelijkbaar": "similar",
     "Niets gevonden voor '{q}'.": "Nothing found for '{q}'.",
+    "Zoeken op betekenis vindt geen losse namen of vaktermen.": "Searching by meaning does not find single names or jargon.",
+    "Zoek slim": "Search smart",
     "Zoek in titels, tekst, tags en bijlagen": "Search titles, text, tags and attachments",
     "Prullenbak legen": "Empty trash",
     "Alles definitief verwijderen": "Delete everything for good",

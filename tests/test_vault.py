@@ -1,7 +1,7 @@
 import pytest
 
-from schrift.models import Task, TaskChange
-from schrift.services.vault import ConflictError, VaultError
+from schrift.models import Note, Task, TaskChange, User
+from schrift.services.vault import ConflictError, Vault, VaultError
 
 
 def test_create_note_writes_markdown_with_frontmatter(vault):
@@ -129,3 +129,22 @@ def test_renaming_updates_wikilinks(vault):
     source = vault.create_note("Overleg", "# Overleg\n\nZie [[Klant X]] en [[klant x|de klant]].")
     vault.save(target, "# Klant Xenia\n")
     assert vault.body(source) == "# Overleg\n\nZie [[Klant Xenia]] en [[Klant Xenia|de klant]]."
+
+
+def test_change_callback_fires_after_commit(ctx):
+    # The semantic indexer reads the note in its own session, so it must only hear about
+    # a change once that change is committed.
+    seen = []
+
+    def on_change(note_id):
+        with ctx.db.session() as other:
+            seen.append(other.get(Note, note_id) is not None)
+
+    with ctx.db.session() as s:
+        user = User(username="ander", password_hash="x")
+        s.add(user)
+    with ctx.db.session() as s:
+        vault = Vault(s, s.merge(user), ctx.settings.data_dir, on_change=on_change)
+        vault.create_note("# Nieuw\n\nTekst")
+        assert seen == []
+    assert seen == [True]

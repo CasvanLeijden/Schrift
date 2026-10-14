@@ -23,8 +23,9 @@ from schrift.services.search import SearchResult
 
 log = logging.getLogger("schrift.semantic")
 
-CHUNK_CHARS = 900
-MIN_SCORE = 0.3
+CHUNK_CHARS = 400  # the default model reads at most 128 tokens per chunk
+MIN_SCORE = 0.4
+SCORE_WINDOW = 0.1  # only keep notes this close to the best match; the rest is noise
 EMBED_THREADS = 2
 RETRY_AFTER = 600  # seconds before trying to load the model again
 
@@ -134,6 +135,8 @@ class SemanticIndex:
             note = session.get(Note, note_id)
             if note is None:
                 return
+            if note.deleted_at is None and note.embedded_hash == note.content_hash:
+                return  # already indexed (autosave queues the same note many times)
             session.execute(delete(Embedding).where(Embedding.note_id == note_id))
             if note.deleted_at is not None:
                 return
@@ -174,6 +177,9 @@ class SemanticIndex:
             if score >= MIN_SCORE and score > best.get(note_id, (-1, ""))[0]:
                 best[note_id] = (float(score), text)
         ordered = sorted(best.items(), key=lambda kv: kv[1][0], reverse=True)[:limit]
+        if ordered:
+            floor = ordered[0][1][0] - SCORE_WINDOW
+            ordered = [kv for kv in ordered if kv[1][0] >= floor]
         notes = {
             n.id: n
             for n in session.scalars(

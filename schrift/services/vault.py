@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from sqlalchemy import delete, func, select, text, update
+from sqlalchemy import delete, event, func, select, text, update
 from sqlalchemy.orm import Session
 
 from schrift import markdown as md
@@ -442,9 +442,21 @@ class Vault:
         self._reindex(note, body)
         self.session.flush()
         if changed and self.on_change:
-            self.on_change(note.id)
+            self._notify_after_commit(note.id)
         if renamed_from and renamed_from.lower() != title.lower():
             self._update_links(note, renamed_from, title, source)
+
+    def _notify_after_commit(self, note_id: str) -> None:
+        # The callback hands the note to another thread with its own session, which only
+        # sees the change once this transaction is committed.
+        pending = self.session.info.setdefault("changed_notes", set())
+        if not pending:
+            event.listen(self.session, "after_commit", self._notify, once=True)
+        pending.add(note_id)
+
+    def _notify(self, session: Session) -> None:
+        for note_id in session.info.pop("changed_notes", set()):
+            self.on_change(note_id)
 
     def _update_links(self, note: Note, old_title: str, new_title: str, source: str) -> None:
         """Rewrite [[Old title]] to [[New title]] in notes that link to a renamed note."""
