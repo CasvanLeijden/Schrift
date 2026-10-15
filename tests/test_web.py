@@ -225,3 +225,10 @@ def test_search_mode_choice_shows_with_semantic_search(web):
     html = web.get("/search?q=x&mode=meaning").text
     assert html.count('name="mode"') == 3
     assert 'value="meaning" class="sr-only" checked' in html
+
+
+def test_wide_view_is_remembered_per_note(web):
+    note = web.post("/api/notes", json={"title": "Breed"}).json()
+    assert 'data-wide="false"' in web.get(note["url"]).text
+    assert web.post("/api/ui/wide", json={"noteId": note["id"], "wide": True}).json()["ok"]
+    assert 'data-wide="true"' in web.get(note["url"]).text

@@ -1,10 +1,10 @@
 {% extends "layout.html" %}
 {% block title %}{{ note.title }} · Schrift{% endblock %}
 {% block main %}
-<div class="has-format-bar flex min-h-full flex-col" x-data="noteEditor">
+<div class="has-format-bar flex min-h-full flex-col" x-data="noteEditor" data-wide="{{ 'true' if wide else 'false' }}">
   <header class="topbar">
     <button class="icon-btn md:hidden" @click="drawer = true" aria-label="{{ t('Menu') }}">{{ icon("menu") }}</button>
-    <span class="min-w-0 truncate text-muted">
+    <span class="min-w-0 flex-1 truncate text-muted">
       {% if note.is_inbox %}{{ t("Inbox") }}{% else %}
       {% for c in crumbs %}{{ c.name }}{% if not loop.last %} <span aria-hidden="true">/</span> {% endif %}{% endfor %}
       {% endif %}
@@ -13,6 +13,7 @@
       <span x-show="status === 'saved'">{{ icon("check", 14) }}</span>
       <span x-text="statusText"></span>
     </span>
+    <button class="icon-btn hidden md:inline-flex" :class="wide && 'is-active'" @click="toggleWide()" :aria-pressed="wide.toString()" aria-label="{{ t('Brede weergave') }}" title="{{ t('Brede weergave') }}">{{ icon("wide") }}</button>
     <button class="topbar-btn" @click="openVersions()" title="{{ t('Versies') }}">
       {{ icon("history", 16) }}<span class="hidden lg:inline" x-text="changedLabel"></span>
     </button>
@@ -42,9 +43,9 @@
     <button class="btn btn-sm btn-primary" @click="keepMine()">{{ t("Mijn versie bewaren") }}</button>
   </div>
 
-  <div class="flex flex-1">
-    <div class="flex flex-1 justify-center px-4 pb-24 pt-8 sm:px-6 md:pt-12">
-      <article class="paper">
+  <div class="flex min-w-0 flex-1">
+    <div class="flex min-w-0 flex-1 justify-center px-4 pb-24 pt-8 sm:px-6 md:pt-12">
+      <article class="paper" :class="wide && 'is-wide'">
         {% if note.is_inbox %}
         <h1 class="note-title">{{ t("Inbox") }}</h1>
         <p class="mb-6 text-[14px] text-muted">{{ t("Losse taken en snelle notities. Taken die je in je herinneringen-app aanmaakt, komen hier.") }}</p>

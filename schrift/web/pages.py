@@ -113,6 +113,7 @@ def note_page(note_id: str, request: Request, session: Session = SessionDep, use
         crumbs=crumbs,
         payload=payload,
         backlinks=backlinks(session, note),
+        wide=note.id in (user.ui_state or {}).get("wide_notes", []),
         attachments=att.note_attachments(vault, note.id),
         attachment_url=att.attachment_url,
         flash=pop_flash(request),

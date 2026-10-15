@@ -366,6 +366,19 @@ def set_expanded(data: ExpandIn, session: Session = SessionDep, user: User = Use
     return {"ok": True}
 
 
+class WideIn(BaseModel):
+    noteId: str
+    wide: bool
+
+
+@router.post("/ui/wide")
+def set_wide(data: WideIn, session: Session = SessionDep, user: User = UserDep):
+    wide = set((user.ui_state or {}).get("wide_notes", []))
+    (wide.add if data.wide else wide.discard)(data.noteId)
+    user.ui_state = {**(user.ui_state or {}), "wide_notes": sorted(wide)}
+    return {"ok": True}
+
+
 # --- tasks ------------------------------------------------------------
 
 

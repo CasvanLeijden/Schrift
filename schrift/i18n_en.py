@@ -175,6 +175,7 @@ EN: dict[str, str] = {
     "Niets gevonden voor '{q}'.": "Nothing found for '{q}'.",
     "Zoeken op betekenis vindt geen losse namen of vaktermen.": "Searching by meaning does not find single names or jargon.",
     "Zoek slim": "Search smart",
+    "Brede weergave": "Wide view",
     "Zoek in titels, tekst, tags en bijlagen": "Search titles, text, tags and attachments",
     "Prullenbak legen": "Empty trash",
     "Alles definitief verwijderen": "Delete everything for good",

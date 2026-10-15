@@ -215,6 +215,7 @@ window.Alpine.data('noteEditor', () => {
     updatedAt: null,
     due: { open: false, date: '', time: '', from: 0, to: 0, style: '' },
     table: { open: false, style: '' },
+    wide: false,
 
     get statusText() {
       if (this.status === 'saving') return tr('Opslaan…')
@@ -231,6 +232,7 @@ window.Alpine.data('noteEditor', () => {
 
     init() {
       this.note = JSON.parse(document.getElementById('note-data').textContent)
+      this.wide = this.$root.dataset.wide === 'true'
       this.title = this.note.title
       this.tags = this.note.tags
       this.hash = this.note.hash
@@ -452,6 +454,12 @@ window.Alpine.data('noteEditor', () => {
             .run()
         }
       }
+    },
+
+    toggleWide() {
+      this.wide = !this.wide
+      api('POST', '/api/ui/wide', { noteId: this.note.id, wide: this.wide })
+      this.$nextTick(() => this.placeTableBar())
     },
 
     // --- tables --------------------------------------------------------------------------------------
