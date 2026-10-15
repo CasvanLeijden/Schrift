@@ -78,6 +78,16 @@
       <a class="icon-btn" href="/settings" aria-label="{{ t('Instellingen') }}" title="{{ t('Instellingen') }}">{{ icon("settings") }}</a>
     </div>
   </nav>
+  <script>
+    // Every click loads a full page; keep the folder tree where it was scrolled to.
+    (() => {
+      const tree = document.querySelector('#sidebar .tree')
+      try {
+        tree.scrollTop = Number(sessionStorage.getItem('schrift:tree-scroll')) || 0
+        addEventListener('pagehide', () => sessionStorage.setItem('schrift:tree-scroll', tree.scrollTop))
+      } catch { /* storage unavailable */ }
+    })()
+  </script>
 
   <div class="backdrop md:hidden" x-show="drawer" x-transition.opacity @click="drawer = false" x-cloak></div>
 
