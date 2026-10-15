@@ -2,7 +2,6 @@ import { Editor } from '@tiptap/core'
 import { DetailsContent, DetailsSummary } from '@tiptap/extension-details'
 import Link from '@tiptap/extension-link'
 import { TaskItem, TaskList } from '@tiptap/extension-list'
-import { TableKit } from '@tiptap/extension-table'
 import { Placeholder } from '@tiptap/extensions'
 import { Markdown } from '@tiptap/markdown'
 import StarterKit from '@tiptap/starter-kit'
@@ -10,6 +9,7 @@ import StarterKit from '@tiptap/starter-kit'
 import { SchriftDetails } from './details.js'
 import { SchriftImage } from './image.js'
 import { patchMarkdown } from './mdfix.js'
+import { tableExtensions } from './table.js'
 import { Tokens } from './tokens.js'
 
 export function createEditor({
@@ -29,7 +29,7 @@ export function createEditor({
       TaskList,
       TaskItem.configure({ nested: true }),
       SchriftImage,
-      TableKit.configure({ table: { resizable: false } }),
+      ...tableExtensions,
       SchriftDetails.configure({ persist: true, HTMLAttributes: { class: 'details' } }),
       DetailsSummary,
       DetailsContent,

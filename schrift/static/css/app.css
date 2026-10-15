@@ -234,6 +234,9 @@
   .icon-btn {
     @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-icon hover:bg-hover hover:text-text;
   }
+  .icon-btn.is-active {
+    @apply bg-accent-soft text-accent;
+  }
   .icon-btn-sm {
     @apply h-7 w-7;
   }
@@ -401,7 +404,10 @@
     @apply mb-5 font-serif text-[32px] leading-tight font-semibold tracking-tight;
   }
   .paper {
-    @apply relative w-full max-w-[760px];
+    @apply relative w-full max-w-[760px] min-w-0;
+  }
+  .paper.is-wide {
+    @apply max-w-[1600px];
   }
   .note-title {
     @apply mb-3 block w-full resize-none overflow-hidden bg-transparent font-serif text-[30px] leading-tight font-semibold tracking-tight text-text outline-none placeholder:text-icon sm:text-[34px];
@@ -701,6 +707,21 @@
 }
 .prose-note .ProseMirror .tableWrapper {
   @apply overflow-x-auto;
+}
+/* Once a column has a dragged width, the widths are exact and the table may grow past
+   the text column (the wrapper scrolls). */
+.prose-note .ProseMirror table:has(col[style*="width"]) {
+  table-layout: fixed;
+}
+.prose-note .ProseMirror th,
+.prose-note .ProseMirror td {
+  position: relative;
+}
+.prose-note .ProseMirror .column-resize-handle {
+  @apply pointer-events-none absolute -right-[2px] top-0 -bottom-px w-[3px] bg-accent;
+}
+.prose-note .ProseMirror.resize-cursor {
+  cursor: col-resize;
 }
 .prose-note .ProseMirror .has-table-bar {
   padding-top: 44px;

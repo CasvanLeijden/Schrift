@@ -67,6 +67,11 @@ offerte voor 20e!!
 | --- | --- |
 | 1   | 2   |
 `,
+  tableWidths: `<!-- cols: 160 - 320 -->
+| Pas | Houder | Bevoegdheden |
+| --- | ------ | ------------ |
+| 1   | Cas    | alles        |
+`,
   escapes: `\\*niet vet\\* en \\_ook niet\\_ en \\[geen](link)
 `,
 }
@@ -88,4 +93,15 @@ test('image width is kept in the alt text', () => {
   })
   editor.destroy()
   assert.equal(width, 320)
+})
+
+test('table column widths are read from the comment', () => {
+  const el = document.createElement('div')
+  const editor = createEditor({ element: el, markdown: CASES.tableWidths })
+  const widths = []
+  editor.state.doc.descendants((n) => {
+    if (n.type.name === 'tableHeader') widths.push(n.attrs.colwidth)
+  })
+  editor.destroy()
+  assert.deepEqual(widths, [[160], null, [320]])
 })
