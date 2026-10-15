@@ -14,7 +14,7 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.execute("UPDATE notes SET embedded_hash = NULL")
+    op.execute("UPDATE notes SET embedded_hash = ''")
 
 
 def downgrade() -> None:

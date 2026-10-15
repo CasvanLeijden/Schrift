@@ -148,3 +148,23 @@ def test_change_callback_fires_after_commit(ctx):
         vault.create_note("# Nieuw\n\nTekst")
         assert seen == []
     assert seen == [True]
+
+
+def test_migrations_run_on_a_database_with_notes(tmp_path):
+    from alembic import command
+
+    from schrift.db import Database
+    from schrift.migrate import alembic_config, upgrade
+
+    db = Database(f"sqlite:///{tmp_path / 'm.db'}")
+    upgrade(db.engine)
+    with db.session() as s:
+        user = User(username="m", password_hash="x")
+        s.add(user)
+        s.flush()
+        Vault(s, user, tmp_path).create_note("Notitie", "Tekst")
+    cfg = alembic_config(str(db.engine.url))
+    with db.engine.begin() as conn:
+        cfg.attributes["connection"] = conn
+        command.downgrade(cfg, "0003")
+        command.upgrade(cfg, "head")
